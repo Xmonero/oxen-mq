@@ -35,9 +35,9 @@ on this below).  For example, for lokid categories are:
   sensitive statistics, accessing SN private keys, remote shutdown, etc.
 - `sn` - is for SN-to-SN communication such as blink quorum and uptime proof obligation votes.
 - `blink` - is for public blink commands (i.e. blink submission) and is only provided by nodes
-  running as service nodes.
+  running as masternodes.
 - `blockchain` - is for remote blockchain access such as retrieving blocks and transactions as well
-  as subscribing to updates for new blocks, transactions, and service node states.
+  as subscribing to updates for new blocks, transactions, and masternode states.
 
 The difference between a request and a command is that a request includes an additional opaque tag
 value which is used to identify a reply.  For example you could register a `general.backwards`
@@ -115,7 +115,7 @@ Sending a command to a peer is done by using a connection ID, and generally fall
 
 The connection ID generally has two possible values:
 
-- a string containing a service node pubkey.  In this mode LokiMQ will look for the given SN in
+- a string containing a masternode pubkey.  In this mode LokiMQ will look for the given SN in
   already-established connections, reusing a connection if one exists.  If no connection already
   exists, a new connection to the given SN is attempted (this requires constructing the LokiMQ
   object with a callback to determine SN remote addresses).
@@ -124,7 +124,7 @@ The connection ID generally has two possible values:
   section).
 
     ```C++
-    // Send to a service node, establishing a connection if necessary:
+    // Send to a masternode, establishing a connection if necessary:
     std::string my_sn = ...; // 32-byte pubkey of a known SN
     lmq.send(my_sn, "sn.explode", "{ \"seconds\": 30 }");
 
@@ -149,7 +149,7 @@ message parts: it is up to the command itself to deserialize however it wishes (
 bt-encoded, or any other encoding).
 
 The Message object also provides methods for replying to the caller.  Simple replies queue a reply
-if the client is still connected.  Replies to service nodes can also be "strong" replies: when
+if the client is still connected.  Replies to masternodes can also be "strong" replies: when
 replying to a SN that has closed connection with a strong reply we will attempt to reestablish a
 connection to deliver the message.  In order for this to work the LokiMQ caller must provide a
 lookup function to retrieve the remote address given a SN x25519 pubkey.
@@ -174,8 +174,8 @@ Each category has access control consisting of three values:
   - Basic - this requires a basic authentication level (None access is implied)
   - Admin - this requires administrative access (Basic access is implied)
 - ServiceNode (bool) - if true this requires that the remote connection has proven its identity as
-  an active service node (via its x25519 key).
-- LocalServiceNode (bool) - if true this requires that the local node is running in service node
+  an active masternode (via its x25519 key).
+- LocalServiceNode (bool) - if true this requires that the local node is running in masternode
   mode (note that it is *not* required that the local SN be *active*).
 
 Authentication level components are cumulative: for example, a category with Basic auth +
@@ -207,11 +207,11 @@ For example, in lokid the categories described above have authentication levels 
 
 In order to handle ServiceNode authentication, LokiMQ uses an Allow callback invoked during
 connection to determine both whether to allow the connection, and to determine whether the incoming
-connection is an active service node.
+connection is an active masternode.
 
 Note that this status persists for the life of the connection (i.e. it is not rechecked on each
 command invocation).  If you require stronger protection against being called by
-decommissioned/deregistered service nodes from a connection established when the SN was active then
+decommissioned/deregistered masternodes from a connection established when the SN was active then
 the callback itself will need to verify when invoked.
 
 ## Command aliases
