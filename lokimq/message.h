@@ -33,7 +33,7 @@ public:
     /// will be attempted using the available routing information, but if the connection has already
     /// been closed the reply will be dropped.
     ///
-    /// If you want to send a non-strong reply even when the remote is a service node then add
+    /// If you want to send a non-strong reply even when the remote is a masternode then add
     /// an explicit `send_option::optional()` argument.
     template <typename... Args>
     void send_back(std::string_view, Args&&... args);

@@ -9,7 +9,7 @@ TEST_CASE("connections with curve authentication", "[curve][connect]") {
     std::string listen = random_localhost();
     LokiMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace
@@ -240,7 +240,7 @@ TEST_CASE("SN auth checks", "[sandwich][auth]") {
     crypto_box_keypair(reinterpret_cast<unsigned char*>(&pubkey[0]), reinterpret_cast<unsigned char*>(&privkey[0]));
     LokiMQ server{
         pubkey, privkey,
-        true, // service node
+        true, // masternode
         [](auto) { return ""; },
         get_logger("A» "),
         LogLevel::trace
@@ -354,7 +354,7 @@ TEST_CASE("SN single worker test", "[connect][worker]") {
     std::string listen = random_localhost();
     LokiMQ server{
         "", "",
-        false, // service node
+        false, // masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace

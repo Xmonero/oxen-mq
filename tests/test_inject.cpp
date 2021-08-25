@@ -6,7 +6,7 @@ TEST_CASE("injected external commands", "[injected]") {
     std::string listen = random_localhost();
     LokiMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace
