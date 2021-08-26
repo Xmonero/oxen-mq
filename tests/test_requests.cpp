@@ -7,7 +7,7 @@ TEST_CASE("basic requests", "[requests]") {
     std::string listen = random_localhost();
     OxenMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
     };
     server.listen_curve(listen);
@@ -64,7 +64,7 @@ TEST_CASE("request from server to client", "[requests]") {
     std::string listen = random_localhost();
     OxenMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
     };
     server.listen_curve(listen);
@@ -127,7 +127,7 @@ TEST_CASE("request timeouts", "[requests][timeout]") {
     std::string listen = random_localhost();
     OxenMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
     };
     server.listen_curve(listen);

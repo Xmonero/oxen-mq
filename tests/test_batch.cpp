@@ -43,7 +43,7 @@ void start_big_task(oxenmq::OxenMQ& lmq) {
 TEST_CASE("batching many small jobs", "[batch-many]") {
     oxenmq::OxenMQ lmq{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
     };
     lmq.set_general_threads(4);
@@ -60,7 +60,7 @@ TEST_CASE("batching many small jobs", "[batch-many]") {
 TEST_CASE("batch exception propagation", "[batch-exceptions]") {
     oxenmq::OxenMQ lmq{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
     };
     lmq.set_general_threads(4);
