@@ -479,7 +479,7 @@ void LokiMQ::proxy_loop() {
 }
 
 static bool is_error_response(string_view cmd) {
-    return cmd == "FORBIDDEN" || cmd == "FORBIDDEN_SN" || cmd == "NOT_A_SERVICE_NODE" || cmd == "UNKNOWNCOMMAND" || cmd == "NO_REPLY_TAG";
+    return cmd == "FORBIDDEN" || cmd == "FORBIDDEN_SN" || cmd == "NOT_A_MASTERNODE" || cmd == "UNKNOWNCOMMAND" || cmd == "NO_REPLY_TAG";
 }
 
 // Return true if we recognized/handled the builtin command (even if we reject it for whatever

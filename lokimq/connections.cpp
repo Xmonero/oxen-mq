@@ -171,7 +171,7 @@ LokiMQ::proxy_connect_sn(string_view remote, string_view connect_hint, bool opti
         return {nullptr, ""s};
     }
     peer_info p{};
-    p.service_node = true;
+    p.masternode = true;
     p.pubkey = std::string{remote};
     p.conn_index = connections.size();
     p.idle_expiry = keep_alive;
@@ -359,7 +359,7 @@ void LokiMQ::proxy_connect_remote(bt_dict_consumer data) {
             std::move(on_connect), std::move(on_failure));
     peer_info peer;
     peer.pubkey = std::move(remote_pubkey);
-    peer.service_node = false;
+    peer.masternode = false;
     peer.auth_level = auth_level;
     peer.conn_index = connections.size() - 1;
     ConnectionID conn{conn_id, peer.pubkey};

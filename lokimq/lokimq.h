@@ -100,13 +100,13 @@ private:
     /// A unique id for this LokiMQ instance, assigned in a thread-safe manner during construction.
     const int object_id;
 
-    /// The x25519 keypair of this connection.  For service nodes these are the long-run x25519 keys
+    /// The x25519 keypair of this connection.  For masternodes these are the long-run x25519 keys
     /// provided at construction, for non-service-node connections these are generated during
     /// construction.
     std::string pubkey, privkey;
 
-    /// True if *this* node is running in service node mode (whether or not actually active)
-    bool local_service_node = false;
+    /// True if *this* node is running in masternode mode (whether or not actually active)
+    bool local_masternode = false;
 
     /// The thread in which most of the intermediate work happens (handling external connections
     /// and proxying requests between them to worker threads)
@@ -141,12 +141,12 @@ public:
     /// @param pubkey - the x25519 pubkey of the connecting client (32 byte string).  Note that this
     /// will only be non-empty for incoming connections on `listen_curve` sockets; `listen_plain`
     /// sockets do not have a pubkey.
-    /// @param service_node - will be true if the `pubkey` is in the set of known active service
+    /// @param masternode - will be true if the `pubkey` is in the set of known active service
     /// nodes.
     ///
     /// @returns an `AuthLevel` enum value indicating the default auth level for the incoming
     /// connection, or AuthLevel::denied if the connection should be refused.
-    using AllowFunc = std::function<AuthLevel(string_view address, string_view pubkey, bool service_node)>;
+    using AllowFunc = std::function<AuthLevel(string_view address, string_view pubkey, bool masternode)>;
 
     /// Callback that is invoked when we need to send a "strong" message to a SN that we aren't
     /// already connected to and need to establish a connection.  This callback returns the ZMQ
@@ -288,10 +288,10 @@ private:
         /// Pubkey of the remote, if this connection is a curve25519 connection; empty otherwise.
         std::string pubkey;
 
-        /// True if we've authenticated this peer as a service node.  This gets set on incoming
+        /// True if we've authenticated this peer as a masternode.  This gets set on incoming
         /// messages when we check the remote's pubkey, and immediately on outgoing connections to
         /// SNs (since we know their pubkey -- we'll fail to connect if it doesn't match).
-        bool service_node = false;
+        bool masternode = false;
 
         /// The auth level of this peer, as returned by the AllowFunc for incoming connections or
         /// specified during outgoing connections.
@@ -571,8 +571,8 @@ private:
     bool proxy_check_auth(size_t conn_index, bool outgoing, const peer_info& peer,
             zmq::message_t& command, const cat_call_t& cat_call, std::vector<zmq::message_t>& data);
 
-    /// Set of active service nodes.
-    pubkey_set active_service_nodes;
+    /// Set of active masternodes.
+    pubkey_set active_masternodes;
 
     /// Resets or updates the stored set of active SN pubkeys
     void proxy_set_active_sns(string_view data);
@@ -654,29 +654,29 @@ public:
      * want to first add categories and commands, then finish startup by invoking `start()`.
      * (Categories and commands cannot be added after startup).
      *
-     * @param pubkey the public key (32-byte binary string).  For a service node this is the service
-     * node x25519 keypair.  For non-service nodes this (and privkey) can be empty strings to
+     * @param pubkey the public key (32-byte binary string).  For a masternode this is the service
+     * node x25519 keypair.  For non-masternodes this (and privkey) can be empty strings to
      * automatically generate an ephemeral keypair.
      *
-     * @param privkey the service node's private key (32-byte binary string), or empty to generate
+     * @param privkey the masternode's private key (32-byte binary string), or empty to generate
      * one.
      *
-     * @param service_node - true if this instance should be considered a service node for the
+     * @param masternode - true if this instance should be considered a masternode for the
      * purpose of allowing "Access::local_sn" remote calls.  (This should be true if we are
-     * *capable* of being a service node, whether or not we are currently actively).  If specified
+     * *capable* of being a masternode, whether or not we are currently actively).  If specified
      * as true then the pubkey and privkey values must not be empty.
      *
      * @param sn_lookup function that takes a pubkey key (32-byte binary string) and returns a
      * connection string such as "tcp://1.2.3.4:23456" to which a connection should be established
-     * to reach that service node.  Note that this function is only called if there is no existing
-     * connection to that service node, and that the function is never called for a connection to
-     * self (that uses an internal connection instead).  Also note that the service node must be
+     * to reach that masternode.  Note that this function is only called if there is no existing
+     * connection to that masternode, and that the function is never called for a connection to
+     * self (that uses an internal connection instead).  Also note that the masternode must be
      * listening in curve25519 mode (otherwise we couldn't verify its authenticity).  Should return
      * empty for not found or if SN lookups are not supported.
      *
      * @param allow_incoming is a callback that LokiMQ can use to determine whether an incoming
      * connection should be allowed at all and, if so, whether the connection is from a known
-     * service node.  Called with the connecting IP, the remote's verified x25519 pubkey, and the 
+     * masternode.  Called with the connecting IP, the remote's verified x25519 pubkey, and the 
      * called on incoming connections with the (verified) incoming connection
      * pubkey (32-byte binary string) to determine whether the given SN should be allowed to
      * connect.
@@ -689,7 +689,7 @@ public:
      */
     LokiMQ( std::string pubkey,
             std::string privkey,
-            bool service_node,
+            bool masternode,
             SNRemoteAddress sn_lookup,
             Logger logger = [](LogLevel, const char*, int, std::string) { },
             LogLevel level = LogLevel::warn);
@@ -697,7 +697,7 @@ public:
     /**
      * Simplified LokiMQ constructor for a non-listening client or simple listener without any
      * outgoing SN connection lookup capabilities.  The LokiMQ object will not be able to establish
-     * new connections (including reconnections) to service nodes by pubkey.
+     * new connections (including reconnections) to masternodes by pubkey.
      */
     explicit LokiMQ(
             Logger logger = [](LogLevel, const char*, int, std::string) { },
@@ -831,7 +831,7 @@ public:
      *
      * Things you want to do before calling this:
      * - Use `add_category`/`add_command` to set up any commands remote connections can invoke.
-     * - If any commands require SN authentication, specify a list of currently active service node
+     * - If any commands require SN authentication, specify a list of currently active masternode
      *   pubkeys via `set_active_sns()` (and make sure this gets updated when things change by
      *   another `set_active_sns()` or a `update_active_sns()` call).  It *is* possible to make the
      *   initial call after calling `start()`, but that creates a window during which incoming
@@ -880,7 +880,7 @@ public:
      * Note that this method (along with send) doesn't block waiting for a connection; it merely
      * instructs the proxy thread that it should establish a connection.
      *
-     * @param pubkey - the public key (32-byte binary string) of the service node to connect to
+     * @param pubkey - the public key (32-byte binary string) of the masternode to connect to
      * @param keep_alive - the connection will be kept alive if there was valid activity within
      *                     the past `keep_alive` milliseconds.  If an outgoing connection already
      *                     exists, the longer of the existing and the given keep alive is used.
@@ -903,7 +903,7 @@ public:
      * possible to send to the remote before the successful callback is invoked, but there is no
      * guarantee that the messages will be delivered (e.g. if the connection ultimately fails).
      *
-     * For connections to a service node you generally want connect_sn() instead (which verifies
+     * For connections to a masternode you generally want connect_sn() instead (which verifies
      * that it is talking to the SN and encrypts the connection).
      *
      * Unlike `connect_sn`, the connection established here will be kept open indefinitely (until
@@ -950,7 +950,7 @@ public:
     void disconnect(ConnectionID id, std::chrono::milliseconds linger = 1s);
 
     /**
-     * Queue a message to be relayed to the given service node or remote without requiring a reply.
+     * Queue a message to be relayed to the given masternode or remote without requiring a reply.
      * LokiMQ will attempt to relay the message (first connecting and handshaking to the remote SN
      * if not already connected).
      *
@@ -963,9 +963,9 @@ public:
      * generally try hard to deliver it (reconnecting if the connection fails), but if the
      * connection fails persistently the message will eventually be dropped.
      *
-     * @param remote - either a ConnectionID value returned by connect_remote, or a service node
+     * @param remote - either a ConnectionID value returned by connect_remote, or a masternode
      *                 pubkey string.  In the latter case, sending the message may trigger a new
-     *                 connection being established to the service node (i.e. you do not have to
+     *                 connection being established to the masternode (i.e. you do not have to
      *                 call connect() first).
      * @param cmd - the first data frame value which is almost always the remote "category.command" name
      * @param opts - any number of std::string (or string_views) and send options.  Each send option
@@ -989,12 +989,12 @@ public:
     template <typename... T>
     void send(ConnectionID to, string_view cmd, const T&... opts);
 
-    /** Send a command configured as a "REQUEST" command to a service node: the data parts will be
+    /** Send a command configured as a "REQUEST" command to a masternode: the data parts will be
      * prefixed with a random identifier.  The remote is expected to reply with a ["REPLY",
      * <identifier>, ...] message, at which point we invoke the given callback with any [...] parts
      * of the reply.
      *
-     * Like `send()`, a new connection to the service node will be established if not already
+     * Like `send()`, a new connection to the masternode will be established if not already
      * connected.
      *
      * @param to - the pubkey string or ConnectionID to send this request to
@@ -1010,13 +1010,13 @@ public:
      * - ["NO_REPLY_TAG"] - the invoked command is a request command but no reply tag was included
      * - ["FORBIDDEN"] - the command requires an authorization level (e.g. Basic or Admin) that we
      *   do not have.
-     * - ["FORBIDDEN_SN"] - the command requires service node authentication, but the remote did not
-     *   recognize us as a service node.  You *may* want to retry the request a limited number of
+     * - ["FORBIDDEN_SN"] - the command requires masternode authentication, but the remote did not
+     *   recognize us as a masternode.  You *may* want to retry the request a limited number of
      *   times (but do not retry indefinitely as that can be an infinite loop!) because this is
      *   typically also followed by a disconnection; a retried message would reconnect and
      *   reauthenticate which *may* result in picking up the SN authentication.
-     * - ["NOT_A_SERVICE_NODE"] - this command is only invokable on service nodes, and the remote is
-     *   not running as a service node.
+     * - ["NOT_A_MASTERNODE"] - this command is only invokable on masternodes, and the remote is
+     *   not running as a masternode.
      */
     template <typename... T>
     void request(ConnectionID to, string_view cmd, ReplyCallback callback, const T&... opts);
@@ -1026,12 +1026,12 @@ public:
     const std::string& get_pubkey() const { return pubkey; }
     const std::string& get_privkey() const { return privkey; }
 
-    /** Updates (or initially sets) LokiMQ's list of service node pubkeys with the given list.
+    /** Updates (or initially sets) LokiMQ's list of masternode pubkeys with the given list.
      *
      * This has two main effects:
      *
      * - All commands processed after the update will have SN status determined by the new list.
-     * - All outgoing connections to service nodes that are no longer on the list will be closed.
+     * - All outgoing connections to masternodes that are no longer on the list will be closed.
      *   This includes both explicit connections (established by `connect_sn()`) and implicit ones
      *   (established by sending to a SN that wasn't connected).
      *
@@ -1162,7 +1162,7 @@ struct incoming {
     explicit incoming(bool inc = true) : is_incoming{inc} {}
 };
 
-/// Specifies that the message must use an outgoing connection; for messages to a service node the
+/// Specifies that the message must use an outgoing connection; for messages to a masternode the
 /// message will be delivered over an existing outgoing connection, if one is established, and a new
 /// outgoing connection opened to deliver the message if none is currently established.  For non-SN
 /// messages, the message will simply be dropped if it is attempting to be sent on an incoming

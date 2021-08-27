@@ -13,19 +13,19 @@ bt_dict build_send(ConnectionID to, string_view cmd, T&&... opts);
 }
 
 /// Opaque data structure representing a connection which supports ==, !=, < and std::hash.  For
-/// connections to service node this is the service node pubkey (and you can pass a 32-byte string
+/// connections to masternode this is the masternode pubkey (and you can pass a 32-byte string
 /// anywhere a ConnectionID is called for).  For non-SN remote connections you need to keep a copy
 /// of the ConnectionID returned by connect_remote().
 struct ConnectionID {
     // Default construction; creates a ConnectionID with an invalid internal ID that will not match
     // an actual connection.
     ConnectionID() : ConnectionID(0) {}
-    // Construction from a service node pubkey
+    // Construction from a masternode pubkey
     ConnectionID(std::string pubkey_) : id{SN_ID}, pk{std::move(pubkey_)} {
         if (pk.size() != 32)
             throw std::runtime_error{"Invalid pubkey: expected 32 bytes"};
     }
-    // Construction from a service node pubkey
+    // Construction from a masternode pubkey
     ConnectionID(string_view pubkey_) : ConnectionID(std::string{pubkey_}) {}
 
     ConnectionID(const ConnectionID&) = default;

@@ -9,7 +9,7 @@ TEST_CASE("basic commands", "[commands]") {
     std::string listen = "tcp://127.0.0.1:4567";
     LokiMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace
@@ -80,7 +80,7 @@ TEST_CASE("outgoing auth level", "[commands][auth]") {
     std::string listen = "tcp://127.0.0.1:4567";
     LokiMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace
@@ -161,7 +161,7 @@ TEST_CASE("deferred replies on incoming connections", "[commands][hey google]") 
     std::string listen = "tcp://127.0.0.1:4567";
     LokiMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace
@@ -271,7 +271,7 @@ TEST_CASE("send failure callbacks", "[commands][queue_full]") {
     std::string listen = "tcp://127.0.0.1:4567";
     LokiMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::debug // This test traces so much that it takes 2.5-3s of CPU time at trace level, so don't do that.

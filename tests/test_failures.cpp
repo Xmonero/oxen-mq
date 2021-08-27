@@ -9,7 +9,7 @@ TEST_CASE("failure responses - UNKNOWNCOMMAND", "[failure][UNKNOWNCOMMAND]") {
     std::string listen = "tcp://127.0.0.1:4567";
     LokiMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace
@@ -48,7 +48,7 @@ TEST_CASE("failure responses - NO_REPLY_TAG", "[failure][NO_REPLY_TAG]") {
     std::string listen = "tcp://127.0.0.1:4567";
     LokiMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace
@@ -106,7 +106,7 @@ TEST_CASE("failure responses - FORBIDDEN", "[failure][FORBIDDEN]") {
     std::string listen = "tcp://127.0.0.1:4567";
     LokiMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace
@@ -180,11 +180,11 @@ TEST_CASE("failure responses - FORBIDDEN", "[failure][FORBIDDEN]") {
     }
 }
 
-TEST_CASE("failure responses - NOT_A_SERVICE_NODE", "[failure][NOT_A_SERVICE_NODE]") {
+TEST_CASE("failure responses - NOT_A_MASTERNODE", "[failure][NOT_A_MASTERNODE]") {
     std::string listen = "tcp://127.0.0.1:4567";
     LokiMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace
@@ -220,7 +220,7 @@ TEST_CASE("failure responses - NOT_A_SERVICE_NODE", "[failure][NOT_A_SERVICE_NOD
     client.recv(resp);
     {
         auto lock = catch_lock();
-        REQUIRE( resp.to_string() == "NOT_A_SERVICE_NODE" );
+        REQUIRE( resp.to_string() == "NOT_A_MASTERNODE" );
         REQUIRE( resp.more() );
         client.recv(resp);
         REQUIRE( resp.to_string() == "x.x" );
@@ -233,7 +233,7 @@ TEST_CASE("failure responses - NOT_A_SERVICE_NODE", "[failure][NOT_A_SERVICE_NOD
     client.recv(resp);
     {
         auto lock = catch_lock();
-        REQUIRE( resp.to_string() == "NOT_A_SERVICE_NODE" );
+        REQUIRE( resp.to_string() == "NOT_A_MASTERNODE" );
         REQUIRE( resp.more() );
         client.recv(resp);
         REQUIRE( resp.to_string() == "REPLY" );
@@ -248,7 +248,7 @@ TEST_CASE("failure responses - FORBIDDEN_SN", "[failure][FORBIDDEN_SN]") {
     std::string listen = "tcp://127.0.0.1:4567";
     LokiMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace
