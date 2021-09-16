@@ -190,7 +190,7 @@ TEST_CASE("failure responses - FORBIDDEN", "[failure][FORBIDDEN]") {
     }
 }
 
-TEST_CASE("failure responses - NOT_A_SERVICE_NODE", "[failure][NOT_A_SERVICE_NODE]") {
+TEST_CASE("failure responses - NOT_A_MASTERNODE", "[failure][NOT_A_MASTERNODE]") {
     std::string listen = random_localhost();
     OxenMQ server{
         "", "", // generate ephemeral keys
@@ -232,7 +232,7 @@ TEST_CASE("failure responses - NOT_A_SERVICE_NODE", "[failure][NOT_A_SERVICE_NOD
     {
         auto lock = catch_lock();
         REQUIRE( recvd );
-        REQUIRE( resp.to_string() == "NOT_A_SERVICE_NODE" );
+        REQUIRE( resp.to_string() == "NOT_A_MASTERNODE" );
         REQUIRE( resp.more() );
         REQUIRE( client.recv(resp) );
         REQUIRE( resp.to_string() == "x.x" );
@@ -246,7 +246,7 @@ TEST_CASE("failure responses - NOT_A_SERVICE_NODE", "[failure][NOT_A_SERVICE_NOD
     {
         auto lock = catch_lock();
         REQUIRE( recvd );
-        REQUIRE( resp.to_string() == "NOT_A_SERVICE_NODE" );
+        REQUIRE( resp.to_string() == "NOT_A_MASTERNODE" );
         REQUIRE( resp.more() );
         REQUIRE( client.recv(resp) );
         REQUIRE( resp.to_string() == "REPLY" );

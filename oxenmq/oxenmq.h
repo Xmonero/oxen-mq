@@ -135,7 +135,7 @@ private:
     std::string pubkey, privkey;
 
     /// True if *this* node is running in service node mode (whether or not actually active)
-    bool local_service_node = false;
+    bool local_masternode = false;
 
     /// The thread in which most of the intermediate work happens (handling external connections
     /// and proxying requests between them to worker threads)
@@ -167,12 +167,12 @@ public:
     /// @param pubkey - the x25519 pubkey of the connecting client (32 byte string).  Note that this
     /// will only be non-empty for incoming connections on `listen_curve` sockets; `listen_plain`
     /// sockets do not have a pubkey.
-    /// @param service_node - will be true if the `pubkey` is in the set of known active service
+    /// @param masternode - will be true if the `pubkey` is in the set of known active service
     /// nodes.
     ///
     /// @returns an `AuthLevel` enum value indicating the default auth level for the incoming
     /// connection, or AuthLevel::denied if the connection should be refused.
-    using AllowFunc = std::function<AuthLevel(std::string_view address, std::string_view pubkey, bool service_node)>;
+    using AllowFunc = std::function<AuthLevel(std::string_view address, std::string_view pubkey, bool masternode)>;
 
     /// Callback that is invoked when we need to send a "strong" message to a SN that we aren't
     /// already connected to and need to establish a connection.  This callback returns the ZMQ
@@ -343,7 +343,7 @@ private:
         /// True if we've authenticated this peer as a service node.  This gets set on incoming
         /// messages when we check the remote's pubkey, and immediately on outgoing connections to
         /// SNs (since we know their pubkey -- we'll fail to connect if it doesn't match).
-        bool service_node = false;
+        bool masternode = false;
 
         /// The auth level of this peer, as returned by the AllowFunc for incoming connections or
         /// specified during outgoing connections.
@@ -649,7 +649,7 @@ private:
 
 
     /// Set of active service nodes.
-    pubkey_set active_service_nodes;
+    pubkey_set active_masternodes;
 
     /// Resets or updates the stored set of active SN pubkeys
     void proxy_set_active_sns(std::string_view data);
@@ -767,7 +767,7 @@ public:
      * @param privkey the service node's private key (32-byte binary string), or empty to generate
      * one.
      *
-     * @param service_node - true if this instance should be considered a service node for the
+     * @param masternode - true if this instance should be considered a service node for the
      * purpose of allowing "Access::local_sn" remote calls.  (This should be true if we are
      * *capable* of being a service node, whether or not we are currently actively).  If specified
      * as true then the pubkey and privkey values must not be empty.
@@ -795,7 +795,7 @@ public:
      */
     OxenMQ( std::string pubkey,
             std::string privkey,
-            bool service_node,
+            bool masternode,
             SNRemoteAddress sn_lookup,
             Logger logger = [](LogLevel, const char*, int, std::string) { },
             LogLevel level = LogLevel::warn);
@@ -1180,7 +1180,7 @@ public:
      *   times (but do not retry indefinitely as that can be an infinite loop!) because this is
      *   typically also followed by a disconnection; a retried message would reconnect and
      *   reauthenticate which *may* result in picking up the SN authentication.
-     * - ["NOT_A_SERVICE_NODE"] - this command is only invokable on service nodes, and the remote is
+     * - ["NOT_A_MASTERNODE"] - this command is only invokable on service nodes, and the remote is
      *   not running as a service node.
      */
     template <typename... T>

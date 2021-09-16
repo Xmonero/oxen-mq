@@ -174,13 +174,13 @@ Each category has access control consisting of three values:
   - None - no authentication required at all, any remote client may invoke this command
   - Basic - this requires a basic authentication level (None access is implied)
   - Admin - this requires administrative access (Basic access is implied)
-- ServiceNode (bool) - if true this requires that the remote connection has proven its identity as
+- Masternode (bool) - if true this requires that the remote connection has proven its identity as
   an active service node (via its x25519 key).
-- LocalServiceNode (bool) - if true this requires that the local node is running in service node
+- LocalMasternode (bool) - if true this requires that the local node is running in service node
   mode (note that it is *not* required that the local SN be *active*).
 
 Authentication level components are cumulative: for example, a category with Basic auth +
-ServiceNode=true + LocalServiceNode=true would only be access if all three conditions are met.
+Masternode=true + LocalMasternode=true would only be access if all three conditions are met.
 
 The authentication mechanism works in two ways: defaults based on configuration, and explicit
 logins.
@@ -200,13 +200,13 @@ Thus, for example, a daemon could be configured to be allow Basic remote access 
 For example, in oxend the categories described above have authentication levels of:
 
 - `system` - Admin
-- `sn` - ServiceNode
-- `blink` - LocalServiceNode
+- `sn` - Masternode
+- `blink` - LocalMasternode
 - `blockchain` - Basic
 
-### Service Node authentication
+### Masternode authentication
 
-In order to handle ServiceNode authentication, OxenMQ uses an Allow callback invoked during
+In order to handle Masternode authentication, OxenMQ uses an Allow callback invoked during
 connection to determine both whether to allow the connection, and to determine whether the incoming
 connection is an active service node.
 
