@@ -168,7 +168,7 @@ OxenMQ::proxy_connect_sn(std::string_view remote, std::string_view connect_hint,
     }
 
     auto& p = peers.emplace(std::move(remote_cid), peer_info{})->second;
-    p.service_node = true;
+    p.masternode = true;
     p.pubkey = std::string{remote};
     p.conn_id = next_conn_id++;
     p.idle_expiry = keep_alive;
@@ -339,7 +339,7 @@ void OxenMQ::proxy_connect_remote(bt_dict_consumer data) {
             std::move(on_connect), std::move(on_failure));
     auto& peer = peers.emplace(ConnectionID{conn_id, remote_pubkey}, peer_info{})->second;
     peer.pubkey = std::move(remote_pubkey);
-    peer.service_node = false;
+    peer.masternode = false;
     peer.auth_level = auth_level;
     peer.conn_id = conn_id;
     peer.idle_expiry = 24h * 10 * 365; // "forever"
