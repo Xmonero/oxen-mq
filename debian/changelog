@@ -1,15 +1,12 @@
-oxenmq (1.2.6-2~ubuntu2010) groovy; urgency=medium
+oxenmq (1.2.6-2~ubuntu2104) hirsute; urgency=medium
 
   * fix control file
-  * Loki->Oxen in package descriptions
+  * Loki->Quenero in package descriptions
 
- -- Jason Rhinelander <jason@imaginary.ca>  Mon, 09 Aug 2021 13:19:01 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Mon, 09 Aug 2021 13:19:02 -0300
 
-oxenmq (1.2.6-1~ubuntu2010) groovy; urgency=medium
+oxenmq (1.2.6-1~ubuntu2104) hirsute; urgency=medium
 
-  * Rediff patches
-  * update lib version
-  * Rediff patches
   * Update gbp main branch name to stable
   * Add timer cancellation & timer tests
   * Bump project version in dev branch (for next release)
@@ -25,7 +22,13 @@ oxenmq (1.2.6-1~ubuntu2010) groovy; urgency=medium
   * Add a single container version of `send_option::data_parts`
   * Remove debug
 
- -- Jason Rhinelander <jason@imaginary.ca>  Mon, 05 Jul 2021 18:11:15 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Mon, 05 Jul 2021 18:11:21 -0300
+
+oxenmq (1.2.5-1~ubuntu2104) hirsute; urgency=medium
+
+  * Add Ubuntu hirsute (21.04) deb
+
+ -- Jason Rhinelander <jason@imaginary.ca>  Thu, 22 Apr 2021 13:32:53 -0300
 
 oxenmq (1.2.5-1~ubuntu2010) groovy; urgency=medium
 

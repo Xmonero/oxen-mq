@@ -1,7 +1,7 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: oxenmq
-Upstream-Contact: Jason Rhinelander <jason@imaginary.ca>
-Source: <https://github.com/loki-project/loki-mq.git>
+Upstream-Contact: Franklin Mike <moneroxdottech@gmail.com>
+Source: <https://github.com/Xmonero/oxen-mq.git>
 
 Files: *
 Copyright: 2020 The Loki Project
