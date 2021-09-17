@@ -1,22 +1,22 @@
 Source: oxenmq
 Priority: optional
-Maintainer: Jason Rhinelander <jason@imaginary.ca>
+Maintainer: Franklin Mike <moneroxdottech@gmail.com>
 Build-Depends: debhelper-compat (= 11), cmake (>= 3.5), g++, pkg-config, libzmq3-dev (>= 4.3), libsodium-dev
 Standards-Version: 4.4.1
 Section: libs
-Homepage: https://github.com/oxen-io/oxen-mq
+Homepage: https://github.com/Xmonero/oxen-mq
 
 Package: liboxenmq-dev
 Section: libdevel
 Architecture: any
 Depends: liboxenmq1.2.6 (= ${binary:Version}), ${misc:Depends}, libzmq3-dev (>= 4.3)
-Description: zeromq-based Oxen message passing library (headers)
+Description: zeromq-based Quenero message passing library (headers)
  This C++17 library contains an abstraction layer around ZeroMQ to support
- integration with Oxen authentication, RPC, and message passing.  It is
+ integration with Quenero authentication, RPC, and message passing.  It is
  designed to be usable as the underlying communication mechanism of SN-to-SN
  communication ("quorumnet"), the RPC interface used by wallets and local
  daemon commands, communication channels between oxend and auxiliary services
- (storage server, lokinet), and also provides a local multithreaded job
+ (storage server), and also provides a local multithreaded job
  scheduling within a process.
  .
  This package contains the library headers and other development files needed
@@ -25,16 +25,16 @@ Description: zeromq-based Oxen message passing library (headers)
 Package: liboxenmq1.2.6
 Architecture: any
 Depends: ${shlibs:Depends}, ${misc:Depends}
-Description: zeromq-based Oxen message passing library
+Description: zeromq-based Quenero message passing library
  This C++17 library contains an abstraction layer around ZeroMQ to support
- integration with Oxen authentication, RPC, and message passing.  It is
- designed to be usable as the underlying communication mechanism of SN-to-SN
+ integration with Quenero authentication, RPC, and message passing.  It is
+ designed to be usable as the underlying communication mechanism of MN-to-MN
  communication ("quorumnet"), the RPC interface used by wallets and local
  daemon commands, communication channels between oxend and auxiliary services
- (storage server, lokinet), and also provides a local multithreaded job
+ (storage server), and also provides a local multithreaded job
  scheduling within a process.
  .
- This package contains the library file needed by software built using oxenmq.
+ This package contains the library file needed by software built using queneromq.
 
 Package: liblokimq-dev
 Section: libdevel
