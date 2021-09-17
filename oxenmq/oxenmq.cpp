@@ -191,11 +191,11 @@ zmq::socket_t& OxenMQ::get_control_socket() {
 OxenMQ::OxenMQ(
         std::string pubkey_,
         std::string privkey_,
-        bool service_node,
+        bool masternode,
         SNRemoteAddress lookup,
         Logger logger,
         LogLevel level)
-    : object_id{next_id++}, pubkey{std::move(pubkey_)}, privkey{std::move(privkey_)}, local_service_node{service_node},
+    : object_id{next_id++}, pubkey{std::move(pubkey_)}, privkey{std::move(privkey_)}, local_masternode{masternode},
         sn_lookup{std::move(lookup)}, log_lvl{level}, logger{std::move(logger)}
 {
 
@@ -207,8 +207,8 @@ OxenMQ::OxenMQ(
     if (pubkey.empty() != privkey.empty()) {
         throw std::invalid_argument("OxenMQ construction failed: one (and only one) of pubkey/privkey is empty. Both must be specified, or both empty to generate a key.");
     } else if (pubkey.empty()) {
-        if (service_node)
-            throw std::invalid_argument("Cannot construct a service node mode OxenMQ without a keypair");
+        if (masternode)
+            throw std::invalid_argument("Cannot construct a masternode mode OxenMQ without a keypair");
         LMQ_LOG(debug, "generating x25519 keypair for remote-only OxenMQ instance");
         pubkey.resize(crypto_box_PUBLICKEYBYTES);
         privkey.resize(crypto_box_SECRETKEYBYTES);

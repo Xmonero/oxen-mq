@@ -1,14 +1,14 @@
-# OxenMQ - high-level zeromq-based message passing for network-based projects
+# QueneroMQ - high-level zeromq-based message passing for network-based projects
 
 This C++17 library contains an abstraction layer around ZeroMQ to provide a high-level interface to
 authentication, RPC, and message passing.  It is used extensively within Oxen projects (hence the
-name) as the underlying communication mechanism of SN-to-SN communication ("quorumnet"), the RPC
+name) as the underlying communication mechanism of MN-to-MN communication ("quorumnet"), the RPC
 interface used by wallets and local daemon commands, communication channels between oxend and
 auxiliary services (storage server, lokinet), and also provides local multithreaded job scheduling
 within a process.
 
 Messages channels can be encrypted (using x25519) or not -- however opening an encrypted channel
-requires knowing the server pubkey.  Within Oxen, all SN-to-SN traffic is encrypted, and other
+requires knowing the server pubkey.  Within Oxen, all MN-to-MN traffic is encrypted, and other
 traffic can be encrypted as needed.
 
 This library makes minimal use of mutexes, and none in the hot paths of the code, instead mostly
@@ -34,11 +34,11 @@ on this below).  For example, for oxend categories are:
 
 - `system` - is for RPC commands related to the system administration such as mining, getting
   sensitive statistics, accessing SN private keys, remote shutdown, etc.
-- `sn` - is for SN-to-SN communication such as blink quorum and uptime proof obligation votes.
+- `sn` - is for MN-to-MN communication such as blink quorum and uptime proof obligation votes.
 - `blink` - is for public blink commands (i.e. blink submission) and is only provided by nodes
-  running as service nodes.
+  running as masternodes.
 - `blockchain` - is for remote blockchain access such as retrieving blocks and transactions as well
-  as subscribing to updates for new blocks, transactions, and service node states.
+  as subscribing to updates for new blocks, transactions, and masternode states.
 
 The difference between a request and a command is that a request includes an additional opaque tag
 value which is used to identify a reply.  For example you could register a `general.backwards`
@@ -116,7 +116,7 @@ Sending a command to a peer is done by using a connection ID, and generally fall
 
 The connection ID generally has two possible values:
 
-- a string containing a service node pubkey.  In this mode OxenMQ will look for the given SN in
+- a string containing a masternode pubkey.  In this mode OxenMQ will look for the given SN in
   already-established connections, reusing a connection if one exists.  If no connection already
   exists, a new connection to the given SN is attempted (this requires constructing the OxenMQ
   object with a callback to determine SN remote addresses).
@@ -125,7 +125,7 @@ The connection ID generally has two possible values:
   section).
 
     ```C++
-    // Send to a service node, establishing a connection if necessary:
+    // Send to a masternode, establishing a connection if necessary:
     std::string my_sn = ...; // 32-byte pubkey of a known SN
     lmq.send(my_sn, "sn.explode", "{ \"seconds\": 30 }");
 
@@ -150,7 +150,7 @@ message parts: it is up to the command itself to deserialize however it wishes (
 bt-encoded, or any other encoding).
 
 The Message object also provides methods for replying to the caller.  Simple replies queue a reply
-if the client is still connected.  Replies to service nodes can also be "strong" replies: when
+if the client is still connected.  Replies to masternodes can also be "strong" replies: when
 replying to a SN that has closed connection with a strong reply we will attempt to reestablish a
 connection to deliver the message.  In order for this to work the OxenMQ caller must provide a
 lookup function to retrieve the remote address given a SN x25519 pubkey.
@@ -174,13 +174,13 @@ Each category has access control consisting of three values:
   - None - no authentication required at all, any remote client may invoke this command
   - Basic - this requires a basic authentication level (None access is implied)
   - Admin - this requires administrative access (Basic access is implied)
-- ServiceNode (bool) - if true this requires that the remote connection has proven its identity as
-  an active service node (via its x25519 key).
-- LocalServiceNode (bool) - if true this requires that the local node is running in service node
+- MasterNode (bool) - if true this requires that the remote connection has proven its identity as
+  an active masternode (via its x25519 key).
+- LocalMasterNode (bool) - if true this requires that the local node is running in masternode
   mode (note that it is *not* required that the local SN be *active*).
 
 Authentication level components are cumulative: for example, a category with Basic auth +
-ServiceNode=true + LocalServiceNode=true would only be access if all three conditions are met.
+MasterNode=true + LocalMasterNode=true would only be access if all three conditions are met.
 
 The authentication mechanism works in two ways: defaults based on configuration, and explicit
 logins.
@@ -200,19 +200,19 @@ Thus, for example, a daemon could be configured to be allow Basic remote access 
 For example, in oxend the categories described above have authentication levels of:
 
 - `system` - Admin
-- `sn` - ServiceNode
-- `blink` - LocalServiceNode
+- `sn` - MasterNode
+- `blink` - LocalMasterNode
 - `blockchain` - Basic
 
 ### Service Node authentication
 
-In order to handle ServiceNode authentication, OxenMQ uses an Allow callback invoked during
+In order to handle MasterNode authentication, OxenMQ uses an Allow callback invoked during
 connection to determine both whether to allow the connection, and to determine whether the incoming
-connection is an active service node.
+connection is an active masternode.
 
 Note that this status persists for the life of the connection (i.e. it is not rechecked on each
 command invocation).  If you require stronger protection against being called by
-decommissioned/deregistered service nodes from a connection established when the SN was active then
+decommissioned/deregistered masternodes from a connection established when the SN was active then
 the callback itself will need to verify when invoked.
 
 ## Command aliases
