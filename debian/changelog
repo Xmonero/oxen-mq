@@ -1,15 +1,12 @@
-oxenmq (1.2.6-2~ubuntu1804) bionic; urgency=medium
+oxenmq (1.2.6-2~ubuntu2104) hirsute; urgency=medium
 
   * fix control file
-  * Loki->Oxen in package descriptions
+  * Loki->Quenero in package descriptions
 
  -- Jason Rhinelander <jason@imaginary.ca>  Mon, 09 Aug 2021 13:19:02 -0300
 
-oxenmq (1.2.6-1~ubuntu1804) bionic; urgency=medium
+oxenmq (1.2.6-1~ubuntu2104) hirsute; urgency=medium
 
-  * Rediff patches
-  * update lib version
-  * Rediff patches
   * Update gbp main branch name to stable
   * Add timer cancellation & timer tests
   * Bump project version in dev branch (for next release)
@@ -25,9 +22,15 @@ oxenmq (1.2.6-1~ubuntu1804) bionic; urgency=medium
   * Add a single container version of `send_option::data_parts`
   * Remove debug
 
- -- Jason Rhinelander <jason@imaginary.ca>  Mon, 05 Jul 2021 18:11:18 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Mon, 05 Jul 2021 18:11:21 -0300
 
-oxenmq (1.2.5-1~ubuntu1804) bionic; urgency=medium
+oxenmq (1.2.5-1~ubuntu2104) hirsute; urgency=medium
+
+  * Add Ubuntu hirsute (21.04) deb
+
+ -- Jason Rhinelander <jason@imaginary.ca>  Thu, 22 Apr 2021 13:32:53 -0300
+
+oxenmq (1.2.5-1~ubuntu2010) groovy; urgency=medium
 
   * Add connect_option::*; allow per-connection pubkey-based routing setting
   * Bump (and cmake-modernize) version
@@ -35,9 +38,9 @@ oxenmq (1.2.5-1~ubuntu1804) bionic; urgency=medium
   * Don't warn when we can't send back to an non-SN incoming connection
   * Add support for std::optional<T> send arguments
 
- -- Jason Rhinelander <jason@imaginary.ca>  Thu, 22 Apr 2021 01:49:10 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Thu, 22 Apr 2021 01:49:07 -0300
 
-oxenmq (1.2.4-1~ubuntu1804) bionic; urgency=medium
+oxenmq (1.2.4-1~ubuntu2010) groovy; urgency=medium
 
   * Add missing header
   * Fix debian/rules cmake variables
@@ -46,15 +49,15 @@ oxenmq (1.2.4-1~ubuntu1804) bionic; urgency=medium
   * Bump version
   * Rediff patches
 
- -- Jason Rhinelander <jason@imaginary.ca>  Tue, 09 Mar 2021 15:52:18 -0400
+ -- Jason Rhinelander <jason@imaginary.ca>  Tue, 09 Mar 2021 15:52:15 -0400
 
-oxenmq (1.2.3-2~ubuntu1804) bionic; urgency=medium
+oxenmq (1.2.3-2~ubuntu2010) groovy; urgency=medium
 
   * Add missing header
 
- -- Jason Rhinelander <jason@imaginary.ca>  Thu, 14 Jan 2021 23:29:27 -0400
+ -- Jason Rhinelander <jason@imaginary.ca>  Thu, 14 Jan 2021 23:29:22 -0400
 
-oxenmq (1.2.3-1~ubuntu1804) bionic; urgency=medium
+oxenmq (1.2.3-1~ubuntu2010) groovy; urgency=medium
 
   * Refresh .so versioning patch
   * fix lib version
@@ -67,9 +70,9 @@ oxenmq (1.2.3-1~ubuntu1804) bionic; urgency=medium
   * Rediff patches
   * Rename package in control file
 
- -- Jason Rhinelander <jason@imaginary.ca>  Thu, 14 Jan 2021 15:49:42 -0400
+ -- Jason Rhinelander <jason@imaginary.ca>  Thu, 14 Jan 2021 15:49:27 -0400
 
-lokimq (1.2.2-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.2.2-1~ubuntu2010) groovy; urgency=medium
 
   * Crank clang to 11
   * cppzmq 4.7+ compatibility
@@ -77,9 +80,9 @@ lokimq (1.2.2-1~ubuntu1804) bionic; urgency=medium
   * Don't install when building as a static subdirectory
   * Bump version for 1.2.2 release
 
- -- Jason Rhinelander <jason@imaginary.ca>  Tue, 17 Nov 2020 15:29:52 -0400
+ -- Jason Rhinelander <jason@imaginary.ca>  Tue, 17 Nov 2020 15:29:48 -0400
 
-lokimq (1.2.1-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.2.1-1~ubuntu2010) groovy; urgency=medium
 
   * Update macos build to use 10.14 compatibility
   * macOS 10.12 compatibility
@@ -87,38 +90,52 @@ lokimq (1.2.1-1~ubuntu1804) bionic; urgency=medium
   * Fix var::get<I> to return references
   * Stable release bump
 
- -- Jason Rhinelander <jason@imaginary.ca>  Wed, 21 Oct 2020 00:22:41 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Wed, 21 Oct 2020 00:21:09 -0300
 
-lokimq (1.2.0-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.2.0-1~ubuntu2010) groovy; urgency=medium
 
   1.2.0 release.
 
- -- Jason Rhinelander <jason@imaginary.ca>  Wed, 30 Sep 2020 17:20:08 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Wed, 30 Sep 2020 17:18:48 -0300
 
-lokimq (1.2.0~pre2-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.2.0~pre2-1~ubuntu2010) groovy; urgency=medium
+
+  [ Jason Rhinelander ]
+  * Drop i386
+  * Add separate submodules step
+  * Drop mapbox-variant
+  * Don't build tests
 
   [ Thomas Winget ]
   * add method to get current buffer from bt list/dict consumer
 
- -- Jason Rhinelander <jason@imaginary.ca>  Fri, 25 Sep 2020 21:38:55 -0300
+  [ Jason Rhinelander ]
+  * Fix gbp conf for groovy
 
-lokimq (1.2.0~pre1-1~ubuntu1804) bionic; urgency=medium
+ -- Jason Rhinelander <jason@imaginary.ca>  Fri, 25 Sep 2020 21:30:25 -0300
 
-  * Fork sid deb to bionic.
+lokimq (1.2.0~pre1-1~ubuntu2010) groovy; urgency=medium
+
+  * Fork sid deb to groovy.
+
+ -- Jason Rhinelander <jason@imaginary.ca>  Wed, 23 Sep 2020 17:13:45 -0300
+
+lokimq (1.2.0~pre1-1) unstable; urgency=medium
+
   * lokimq 1.2.0 dev snapshot
 
  -- Jason Rhinelander <jason@imaginary.ca>  Mon, 21 Sep 2020 20:58:30 -0300
 
-lokimq (1.1.4-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.1.4-1) unstable; urgency=medium
 
   * Silence spurious warning on optional send failure
   * Add bt_u64 wrapper for forcing a uint64_t on the wire
   * Add checking for a negative int in bt_*_consumer
   * 1.1.4
 
- -- Jason Rhinelander <jason@imaginary.ca>  Thu, 30 Apr 2020 15:16:25 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Mon, 21 Sep 2020 20:57:48 -0300
 
-lokimq (1.1.3-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.1.3-1) unstable; urgency=medium
 
   * Bump version (not released yet)
   * Provide caller Access in Message
@@ -127,25 +144,25 @@ lokimq (1.1.3-1~ubuntu1804) bionic; urgency=medium
   * Fix incoming ConnectionIDs not being storable
   * Add hack to fix compilation on debian sid
 
- -- Jason Rhinelander <jason@imaginary.ca>  Tue, 28 Apr 2020 22:55:17 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Tue, 28 Apr 2020 22:54:01 -0300
 
-lokimq (1.1.2-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.1.2-1) unstable; urgency=medium
 
   * Set thread names on proxy/workers
   * Fix proxy thread stall when workers fill up
   * Change worker thread names: "w2" -> "lmq-w2"
   * Bump version to 1.1.2
 
- -- Jason Rhinelander <jason@imaginary.ca>  Tue, 21 Apr 2020 17:15:40 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Tue, 21 Apr 2020 17:15:26 -0300
 
-lokimq (1.1.1-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.1.1-1) unstable; urgency=medium
 
   * Drop idle connections regularly
   * Reduce heartbeat frequency to 15s
 
- -- Jason Rhinelander <jason@imaginary.ca>  Sat, 18 Apr 2020 03:01:36 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Sat, 18 Apr 2020 03:00:49 -0300
 
-lokimq (1.1.1~pre-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.1.1~pre-1) unstable; urgency=medium
 
   * removed UNKNOWNCOMMAND patch (applied upstream)
   * Fix storing reference to temporary
@@ -154,26 +171,26 @@ lokimq (1.1.1~pre-1~ubuntu1804) bionic; urgency=medium
   * Increase ZMQ socket limit
   * Bump version to 1.1.1
 
- -- Jason Rhinelander <jason@imaginary.ca>  Fri, 17 Apr 2020 16:23:10 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Fri, 17 Apr 2020 16:22:33 -0300
 
-lokimq (1.1.0-2~ubuntu1804) bionic; urgency=medium
+lokimq (1.1.0-2) unstable; urgency=medium
 
   * Fix pre-1.1.0 UNKNOWNCOMMAND detection
 
- -- Jason Rhinelander <jason@imaginary.ca>  Tue, 14 Apr 2020 23:58:12 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Tue, 14 Apr 2020 23:58:00 -0300
 
-lokimq (1.1.0-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.1.0-1) unstable; urgency=medium
 
-  * drop 0001-slower-connection-tests.patch
+  * Rediff patches
   * Test suite timing tweaks
   * Add ZMTP heartbeating (enabled by default)
   * 1.1.0: invocation-time SN auth; failure responses
   * Move pubkey_set into auth.h header
   * Add missing SET_SNS proxy handler
 
- -- Jason Rhinelander <jason@imaginary.ca>  Tue, 14 Apr 2020 13:06:45 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Tue, 14 Apr 2020 13:06:33 -0300
 
-lokimq (1.0.5-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.0.5-1) unstable; urgency=medium
 
   * Change thread count logs to debug from trace
   * Reset stale pollitems
@@ -183,9 +200,9 @@ lokimq (1.0.5-1~ubuntu1804) bionic; urgency=medium
   * Fix pollitems_stale not being set in some cases
   * Bump version to 1.0.5
 
- -- Jason Rhinelander <jason@imaginary.ca>  Mon, 06 Apr 2020 18:19:37 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Mon, 06 Apr 2020 18:19:22 -0300
 
-lokimq (1.0.4-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.0.4-1) unstable; urgency=medium
 
   * Catch errors on internal msgs; support non-blocking sends
   * Remove empty file
@@ -196,47 +213,47 @@ lokimq (1.0.4-1~ubuntu1804) bionic; urgency=medium
   * Bump version to 1.0.4
   * Add job queue check on total workers size
 
- -- Jason Rhinelander <jason@imaginary.ca>  Sun, 29 Mar 2020 15:52:39 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Sun, 29 Mar 2020 15:52:20 -0300
 
-lokimq (1.0.3-2~ubuntu1804) bionic; urgency=medium
+lokimq (1.0.3-2) unstable; urgency=medium
 
   * Version liblokimq
   * Fully version library
   * liblokimq package versioning
 
- -- Jason Rhinelander <jason@imaginary.ca>  Sat, 28 Mar 2020 12:30:41 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Sat, 28 Mar 2020 12:30:32 -0300
 
-lokimq (1.0.3-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.0.3-1) unstable; urgency=medium
 
   * Avoid masking ReplyCallback type with template param
   * Avoid segfault on retried SN connection request
   * Trim logged filenames to lokimq/*
   * 1.0.3 release
 
- -- Jason Rhinelander <jason@imaginary.ca>  Fri, 27 Mar 2020 18:56:56 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Fri, 27 Mar 2020 18:56:42 -0300
 
-lokimq (1.0.2-2~ubuntu1804) bionic; urgency=medium
+lokimq (1.0.2-2) unstable; urgency=medium
 
   * liblokimq-dev needs to be arch: any
 
- -- Jason Rhinelander <jason@imaginary.ca>  Wed, 25 Mar 2020 16:21:20 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Wed, 25 Mar 2020 16:21:10 -0300
 
-lokimq (1.0.2-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.0.2-1) unstable; urgency=medium
 
   * Rename keep-alive -> keep_alive in internal serialization
   * Reduce connection check interval and make configurable
   * Make request timeout configurable
   * 1.0.2 version bump
 
- -- Jason Rhinelander <jason@imaginary.ca>  Tue, 24 Mar 2020 11:37:41 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Tue, 24 Mar 2020 11:37:17 -0300
 
-lokimq (1.0.1-2~ubuntu1804) bionic; urgency=medium
+lokimq (1.0.1-2) unstable; urgency=medium
 
   * slower connection tests
 
- -- Jason Rhinelander <jason@imaginary.ca>  Mon, 23 Mar 2020 15:18:45 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Mon, 23 Mar 2020 15:18:10 -0300
 
-lokimq (1.0.1-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.0.1-1) unstable; urgency=medium
 
   * Use the correct variable for shared libs
   * More static build linking fixes
@@ -249,9 +266,9 @@ lokimq (1.0.1-1~ubuntu1804) bionic; urgency=medium
   * Change pending_connects from vector to list
   * 1.0.1 release
 
- -- Jason Rhinelander <jason@imaginary.ca>  Sat, 21 Mar 2020 13:00:45 -0300
+ -- Jason Rhinelander <jason@imaginary.ca>  Sat, 21 Mar 2020 13:00:06 -0300
 
-lokimq (1.0.0-1~ubuntu1804) bionic; urgency=medium
+lokimq (1.0.0-1) unstable; urgency=medium
 
   * Initial LokiMQ release
 
