@@ -53,7 +53,7 @@
 #error "ZMQ >= 4.3.0 required"
 #endif
 
-namespace lokimq {
+namespace queneromq {
 
 using namespace std::literals;
 
@@ -87,26 +87,26 @@ static constexpr size_t MAX_COMMAND_LENGTH = 200;
 class CatHelper;
 
 /**
- * Class that handles LokiMQ listeners, connections, proxying, and workers.  An application
+ * Class that handles QueneroMQ listeners, connections, proxying, and workers.  An application
  * typically has just one instance of this class.
  */
-class LokiMQ {
+class QueneroMQ {
 
 private:
 
     /// The global context
     zmq::context_t context;
 
-    /// A unique id for this LokiMQ instance, assigned in a thread-safe manner during construction.
+    /// A unique id for this QueneroMQ instance, assigned in a thread-safe manner during construction.
     const int object_id;
 
-    /// The x25519 keypair of this connection.  For service nodes these are the long-run x25519 keys
+    /// The x25519 keypair of this connection.  For masternodes these are the long-run x25519 keys
     /// provided at construction, for non-service-node connections these are generated during
     /// construction.
     std::string pubkey, privkey;
 
-    /// True if *this* node is running in service node mode (whether or not actually active)
-    bool local_service_node = false;
+    /// True if *this* node is running in masternode mode (whether or not actually active)
+    bool local_masternode = false;
 
     /// The thread in which most of the intermediate work happens (handling external connections
     /// and proxying requests between them to worker threads)
@@ -122,7 +122,7 @@ private:
     std::mutex control_sockets_mutex;
 
     /// Called to obtain a "command" socket that attaches to `control` to send commands to the
-    /// proxy thread from other threads.  This socket is unique per thread and LokiMQ instance.
+    /// proxy thread from other threads.  This socket is unique per thread and QueneroMQ instance.
     zmq::socket_t& get_control_socket();
 
     /// Stores all of the sockets created in different threads via `get_control_socket`.  This is
@@ -141,12 +141,12 @@ public:
     /// @param pubkey - the x25519 pubkey of the connecting client (32 byte string).  Note that this
     /// will only be non-empty for incoming connections on `listen_curve` sockets; `listen_plain`
     /// sockets do not have a pubkey.
-    /// @param service_node - will be true if the `pubkey` is in the set of known active service
+    /// @param masternode - will be true if the `pubkey` is in the set of known active service
     /// nodes.
     ///
     /// @returns an `AuthLevel` enum value indicating the default auth level for the incoming
     /// connection, or AuthLevel::denied if the connection should be refused.
-    using AllowFunc = std::function<AuthLevel(string_view address, string_view pubkey, bool service_node)>;
+    using AllowFunc = std::function<AuthLevel(string_view address, string_view pubkey, bool masternode)>;
 
     /// Callback that is invoked when we need to send a "strong" message to a SN that we aren't
     /// already connected to and need to establish a connection.  This callback returns the ZMQ
@@ -161,7 +161,7 @@ public:
     using ReplyCallback = std::function<void(bool success, std::vector<std::string> data)>;
 
     /// Called to write a log message.  This will only be called if the `level` is >= the current
-    /// LokiMQ object log level.  It must be a raw function pointer (or a capture-less lambda) for
+    /// QueneroMQ object log level.  It must be a raw function pointer (or a capture-less lambda) for
     /// performance reasons.  Takes four arguments: the log level of the message, the filename and
     /// line number where the log message was invoked, and the log message itself.
     using Logger = std::function<void(LogLevel level, const char* file, int line, std::string msg)>;
@@ -172,12 +172,12 @@ public:
     using ConnectFailure = std::function<void(ConnectionID, string_view)>;
 
     /// Explicitly non-copyable, non-movable because most things here aren't copyable, and a few
-    /// things aren't movable, either.  If you need to pass the LokiMQ instance around, wrap it
+    /// things aren't movable, either.  If you need to pass the QueneroMQ instance around, wrap it
     /// in a unique_ptr or shared_ptr.
-    LokiMQ(const LokiMQ&) = delete;
-    LokiMQ& operator=(const LokiMQ&) = delete;
-    LokiMQ(LokiMQ&&) = delete;
-    LokiMQ& operator=(LokiMQ&&) = delete;
+    QueneroMQ(const QueneroMQ&) = delete;
+    QueneroMQ& operator=(const QueneroMQ&) = delete;
+    QueneroMQ(QueneroMQ&&) = delete;
+    QueneroMQ& operator=(QueneroMQ&&) = delete;
 
     /** How long to wait for handshaking to complete on external connections before timing out and
      * closing the connection.  Setting this only affects new outgoing connections. */
@@ -186,8 +186,8 @@ public:
     /** Whether to use a zmq routing ID based on the pubkey for new outgoing connections.  This is
      * normally desirable as it allows the listener to recognize that the incoming connection is a
      * reconnection from the same remote and handover routing to the new socket while closing off
-     * the (likely dead) old socket.  This, however, prevents a single LokiMQ instance from
-     * establishing multiple connections to the same listening LokiMQ, which is sometimes useful
+     * the (likely dead) old socket.  This, however, prevents a single QueneroMQ instance from
+     * establishing multiple connections to the same listening QueneroMQ, which is sometimes useful
      * (for example when testing), and so this option can be overridden to `false` to use completely
      * random zmq routing ids on outgoing connections (which will thus allow multiple connections).
      */
@@ -204,13 +204,13 @@ public:
 
     /** Minimum reconnect interval: when a connection fails or dies, wait this long before
      * attempting to reconnect.  (ZMQ may randomize the value somewhat to avoid reconnection
-     * storms).  See RECONNECT_INTERVAL_MAX as well.  The LokiMQ default is 250ms.
+     * storms).  See RECONNECT_INTERVAL_MAX as well.  The QueneroMQ default is 250ms.
      */
     std::chrono::milliseconds RECONNECT_INTERVAL = 250ms;
 
     /** Maximum reconnect interval.  When this is set to a value larger than RECONNECT_INTERVAL then
      * ZMQ's reconnection logic uses an exponential backoff: each reconnection attempts waits twice
-     * as long as the previous attempt, up to this maximum.  The LokiMQ default is 5 seconds.
+     * as long as the previous attempt, up to this maximum.  The QueneroMQ default is 5 seconds.
      */
     std::chrono::milliseconds RECONNECT_INTERVAL_MAX = 5s;
 
@@ -288,10 +288,10 @@ private:
         /// Pubkey of the remote, if this connection is a curve25519 connection; empty otherwise.
         std::string pubkey;
 
-        /// True if we've authenticated this peer as a service node.  This gets set on incoming
+        /// True if we've authenticated this peer as a masternode.  This gets set on incoming
         /// messages when we check the remote's pubkey, and immediately on outgoing connections to
         /// SNs (since we know their pubkey -- we'll fail to connect if it doesn't match).
-        bool service_node = false;
+        bool masternode = false;
 
         /// The auth level of this peer, as returned by the AllowFunc for incoming connections or
         /// specified during outgoing connections.
@@ -509,7 +509,7 @@ private:
     /// Runs any queued batch jobs
     void proxy_run_batch_jobs(std::queue<batch_job>& jobs, int reserved, int& active, bool reply);
 
-    /// BATCH command.  Called with a Batch<R> (see lokimq/batch.h) object pointer for the proxy to
+    /// BATCH command.  Called with a Batch<R> (see queneromq/batch.h) object pointer for the proxy to
     /// take over and queue batch jobs.
     void proxy_batch(detail::Batch* batch);
 
@@ -571,8 +571,8 @@ private:
     bool proxy_check_auth(size_t conn_index, bool outgoing, const peer_info& peer,
             zmq::message_t& command, const cat_call_t& cat_call, std::vector<zmq::message_t>& data);
 
-    /// Set of active service nodes.
-    pubkey_set active_service_nodes;
+    /// Set of active masternodes.
+    pubkey_set active_masternodes;
 
     /// Resets or updates the stored set of active SN pubkeys
     void proxy_set_active_sns(string_view data);
@@ -650,33 +650,33 @@ private:
 
 public:
     /**
-     * LokiMQ constructor.  This constructs the object but does not start it; you will typically
+     * QueneroMQ constructor.  This constructs the object but does not start it; you will typically
      * want to first add categories and commands, then finish startup by invoking `start()`.
      * (Categories and commands cannot be added after startup).
      *
-     * @param pubkey the public key (32-byte binary string).  For a service node this is the service
-     * node x25519 keypair.  For non-service nodes this (and privkey) can be empty strings to
+     * @param pubkey the public key (32-byte binary string).  For a masternode this is the service
+     * node x25519 keypair.  For non-masternodes this (and privkey) can be empty strings to
      * automatically generate an ephemeral keypair.
      *
-     * @param privkey the service node's private key (32-byte binary string), or empty to generate
+     * @param privkey the masternode's private key (32-byte binary string), or empty to generate
      * one.
      *
-     * @param service_node - true if this instance should be considered a service node for the
+     * @param masternode - true if this instance should be considered a masternode for the
      * purpose of allowing "Access::local_sn" remote calls.  (This should be true if we are
-     * *capable* of being a service node, whether or not we are currently actively).  If specified
+     * *capable* of being a masternode, whether or not we are currently actively).  If specified
      * as true then the pubkey and privkey values must not be empty.
      *
      * @param sn_lookup function that takes a pubkey key (32-byte binary string) and returns a
      * connection string such as "tcp://1.2.3.4:23456" to which a connection should be established
-     * to reach that service node.  Note that this function is only called if there is no existing
-     * connection to that service node, and that the function is never called for a connection to
-     * self (that uses an internal connection instead).  Also note that the service node must be
+     * to reach that masternode.  Note that this function is only called if there is no existing
+     * connection to that masternode, and that the function is never called for a connection to
+     * self (that uses an internal connection instead).  Also note that the masternode must be
      * listening in curve25519 mode (otherwise we couldn't verify its authenticity).  Should return
      * empty for not found or if SN lookups are not supported.
      *
-     * @param allow_incoming is a callback that LokiMQ can use to determine whether an incoming
+     * @param allow_incoming is a callback that QueneroMQ can use to determine whether an incoming
      * connection should be allowed at all and, if so, whether the connection is from a known
-     * service node.  Called with the connecting IP, the remote's verified x25519 pubkey, and the 
+     * masternode.  Called with the connecting IP, the remote's verified x25519 pubkey, and the 
      * called on incoming connections with the (verified) incoming connection
      * pubkey (32-byte binary string) to determine whether the given SN should be allowed to
      * connect.
@@ -687,34 +687,34 @@ public:
      * @param level the initial log level; defaults to warn.  The log level can be changed later by
      * calling log_level(...).
      */
-    LokiMQ( std::string pubkey,
+    QueneroMQ( std::string pubkey,
             std::string privkey,
-            bool service_node,
+            bool masternode,
             SNRemoteAddress sn_lookup,
             Logger logger = [](LogLevel, const char*, int, std::string) { },
             LogLevel level = LogLevel::warn);
 
     /**
-     * Simplified LokiMQ constructor for a non-listening client or simple listener without any
-     * outgoing SN connection lookup capabilities.  The LokiMQ object will not be able to establish
-     * new connections (including reconnections) to service nodes by pubkey.
+     * Simplified QueneroMQ constructor for a non-listening client or simple listener without any
+     * outgoing SN connection lookup capabilities.  The QueneroMQ object will not be able to establish
+     * new connections (including reconnections) to masternodes by pubkey.
      */
-    explicit LokiMQ(
+    explicit QueneroMQ(
             Logger logger = [](LogLevel, const char*, int, std::string) { },
             LogLevel level = LogLevel::warn)
-        : LokiMQ("", "", false, [](auto) { return ""s; /*no peer lookups*/ }, std::move(logger), level) {}
+        : QueneroMQ("", "", false, [](auto) { return ""s; /*no peer lookups*/ }, std::move(logger), level) {}
 
     /**
      * Destructor; instructs the proxy to quit.  The proxy tells all workers to quit, waits for them
      * to quit and rejoins the threads then quits itself.  The outer thread (where the destructor is
      * running) rejoins the proxy thread.
      */
-    ~LokiMQ();
+    ~QueneroMQ();
 
-    /// Sets the log level of the LokiMQ object.
+    /// Sets the log level of the QueneroMQ object.
     void log_level(LogLevel level);
 
-    /// Gets the log level of the LokiMQ object.
+    /// Gets the log level of the QueneroMQ object.
     LogLevel log_level() const;
 
     /**
@@ -794,7 +794,7 @@ public:
      * Note that some internal jobs are counted as batch jobs: in particular timers added via
      * add_timer() are scheduled as batch jobs.
      *
-     * Cannot be called after start()ing the LokiMQ instance.
+     * Cannot be called after start()ing the QueneroMQ instance.
      */
     void set_batch_threads(int threads);
 
@@ -806,7 +806,7 @@ public:
      *
      * Defaults to one-eighth of the number of configured general threads, rounded up.
      *
-     * Cannot be changed after start()ing the LokiMQ instance.
+     * Cannot be changed after start()ing the QueneroMQ instance.
      */
     void set_reply_threads(int threads);
 
@@ -821,7 +821,7 @@ public:
      *
      * Defaults to `std::thread::hardware_concurrency()`.
      *
-     * Cannot be called after start()ing the LokiMQ instance.
+     * Cannot be called after start()ing the QueneroMQ instance.
      */
     void set_general_threads(int threads);
 
@@ -831,7 +831,7 @@ public:
      *
      * Things you want to do before calling this:
      * - Use `add_category`/`add_command` to set up any commands remote connections can invoke.
-     * - If any commands require SN authentication, specify a list of currently active service node
+     * - If any commands require SN authentication, specify a list of currently active masternode
      *   pubkeys via `set_active_sns()` (and make sure this gets updated when things change by
      *   another `set_active_sns()` or a `update_active_sns()` call).  It *is* possible to make the
      *   initial call after calling `start()`, but that creates a window during which incoming
@@ -880,7 +880,7 @@ public:
      * Note that this method (along with send) doesn't block waiting for a connection; it merely
      * instructs the proxy thread that it should establish a connection.
      *
-     * @param pubkey - the public key (32-byte binary string) of the service node to connect to
+     * @param pubkey - the public key (32-byte binary string) of the masternode to connect to
      * @param keep_alive - the connection will be kept alive if there was valid activity within
      *                     the past `keep_alive` milliseconds.  If an outgoing connection already
      *                     exists, the longer of the existing and the given keep alive is used.
@@ -903,7 +903,7 @@ public:
      * possible to send to the remote before the successful callback is invoked, but there is no
      * guarantee that the messages will be delivered (e.g. if the connection ultimately fails).
      *
-     * For connections to a service node you generally want connect_sn() instead (which verifies
+     * For connections to a masternode you generally want connect_sn() instead (which verifies
      * that it is talking to the SN and encrypts the connection).
      *
      * Unlike `connect_sn`, the connection established here will be kept open indefinitely (until
@@ -950,8 +950,8 @@ public:
     void disconnect(ConnectionID id, std::chrono::milliseconds linger = 1s);
 
     /**
-     * Queue a message to be relayed to the given service node or remote without requiring a reply.
-     * LokiMQ will attempt to relay the message (first connecting and handshaking to the remote SN
+     * Queue a message to be relayed to the given masternode or remote without requiring a reply.
+     * QueneroMQ will attempt to relay the message (first connecting and handshaking to the remote SN
      * if not already connected).
      *
      * If a new connection is established it will have a relatively short (30s) idle timeout.  If
@@ -963,9 +963,9 @@ public:
      * generally try hard to deliver it (reconnecting if the connection fails), but if the
      * connection fails persistently the message will eventually be dropped.
      *
-     * @param remote - either a ConnectionID value returned by connect_remote, or a service node
+     * @param remote - either a ConnectionID value returned by connect_remote, or a masternode
      *                 pubkey string.  In the latter case, sending the message may trigger a new
-     *                 connection being established to the service node (i.e. you do not have to
+     *                 connection being established to the masternode (i.e. you do not have to
      *                 call connect() first).
      * @param cmd - the first data frame value which is almost always the remote "category.command" name
      * @param opts - any number of std::string (or string_views) and send options.  Each send option
@@ -989,12 +989,12 @@ public:
     template <typename... T>
     void send(ConnectionID to, string_view cmd, const T&... opts);
 
-    /** Send a command configured as a "REQUEST" command to a service node: the data parts will be
+    /** Send a command configured as a "REQUEST" command to a masternode: the data parts will be
      * prefixed with a random identifier.  The remote is expected to reply with a ["REPLY",
      * <identifier>, ...] message, at which point we invoke the given callback with any [...] parts
      * of the reply.
      *
-     * Like `send()`, a new connection to the service node will be established if not already
+     * Like `send()`, a new connection to the masternode will be established if not already
      * connected.
      *
      * @param to - the pubkey string or ConnectionID to send this request to
@@ -1010,28 +1010,28 @@ public:
      * - ["NO_REPLY_TAG"] - the invoked command is a request command but no reply tag was included
      * - ["FORBIDDEN"] - the command requires an authorization level (e.g. Basic or Admin) that we
      *   do not have.
-     * - ["FORBIDDEN_SN"] - the command requires service node authentication, but the remote did not
-     *   recognize us as a service node.  You *may* want to retry the request a limited number of
+     * - ["FORBIDDEN_SN"] - the command requires masternode authentication, but the remote did not
+     *   recognize us as a masternode.  You *may* want to retry the request a limited number of
      *   times (but do not retry indefinitely as that can be an infinite loop!) because this is
      *   typically also followed by a disconnection; a retried message would reconnect and
      *   reauthenticate which *may* result in picking up the SN authentication.
-     * - ["NOT_A_SERVICE_NODE"] - this command is only invokable on service nodes, and the remote is
-     *   not running as a service node.
+     * - ["NOT_A_MASTERNODE"] - this command is only invokable on masternodes, and the remote is
+     *   not running as a masternode.
      */
     template <typename... T>
     void request(ConnectionID to, string_view cmd, ReplyCallback callback, const T&... opts);
 
-    /// The key pair this LokiMQ was created with; if empty keys were given during construction then
+    /// The key pair this QueneroMQ was created with; if empty keys were given during construction then
     /// this returns the generated keys.
     const std::string& get_pubkey() const { return pubkey; }
     const std::string& get_privkey() const { return privkey; }
 
-    /** Updates (or initially sets) LokiMQ's list of service node pubkeys with the given list.
+    /** Updates (or initially sets) QueneroMQ's list of masternode pubkeys with the given list.
      *
      * This has two main effects:
      *
      * - All commands processed after the update will have SN status determined by the new list.
-     * - All outgoing connections to service nodes that are no longer on the list will be closed.
+     * - All outgoing connections to masternodes that are no longer on the list will be closed.
      *   This includes both explicit connections (established by `connect_sn()`) and implicit ones
      *   (established by sending to a SN that wasn't connected).
      *
@@ -1049,7 +1049,7 @@ public:
 
     /** Updates the list of active pubkeys by adding or removing the given pubkeys from the existing
      * list.  This is more efficient when the incremental information is already available; if it
-     * isn't, simply call set_active_sns with a new list to have LokiMQ figure out what was added or
+     * isn't, simply call set_active_sns with a new list to have QueneroMQ figure out what was added or
      * removed.
      *
      * \param added new pubkeys that were added since the last set_active_sns or update_active_sns
@@ -1064,7 +1064,7 @@ public:
     /**
      * Batches a set of jobs to be executed by workers, optionally followed by a completion function.
      *
-     * Must include lokimq/batch.h to use.
+     * Must include queneromq/batch.h to use.
      */
     template <typename R>
     void batch(Batch<R>&& batch);
@@ -1102,18 +1102,18 @@ public:
 ///     .add_request_command("b", ...)
 ///     ;
 class CatHelper {
-    LokiMQ& lmq;
+    QueneroMQ& lmq;
     std::string cat;
 
 public:
-    CatHelper(LokiMQ& lmq, std::string cat) : lmq{lmq}, cat{std::move(cat)} {}
+    CatHelper(QueneroMQ& lmq, std::string cat) : lmq{lmq}, cat{std::move(cat)} {}
 
-    CatHelper& add_command(std::string name, LokiMQ::CommandCallback callback) {
+    CatHelper& add_command(std::string name, QueneroMQ::CommandCallback callback) {
         lmq.add_command(cat, std::move(name), std::move(callback));
         return *this;
     }
 
-    CatHelper& add_request_command(std::string name, LokiMQ::CommandCallback callback) {
+    CatHelper& add_request_command(std::string name, QueneroMQ::CommandCallback callback) {
         lmq.add_request_command(cat, std::move(name), std::move(callback));
         return *this;
     }
@@ -1162,7 +1162,7 @@ struct incoming {
     explicit incoming(bool inc = true) : is_incoming{inc} {}
 };
 
-/// Specifies that the message must use an outgoing connection; for messages to a service node the
+/// Specifies that the message must use an outgoing connection; for messages to a masternode the
 /// message will be delivered over an existing outgoing connection, if one is established, and a new
 /// outgoing connection opened to deliver the message if none is currently established.  For non-SN
 /// messages, the message will simply be dropped if it is attempting to be sent on an incoming
@@ -1228,7 +1228,7 @@ struct queue_full {
 namespace detail {
 
 /// Takes an rvalue reference, moves it into a new instance then returns a uintptr_t value
-/// containing the pointer to be serialized to pass (via lokimq queues) from one thread to another.
+/// containing the pointer to be serialized to pass (via queneromq queues) from one thread to another.
 /// Must be matched with a deserializer_pointer on the other side to reconstitute the object and
 /// destroy the intermediate pointer.
 template <typename T>
@@ -1261,7 +1261,7 @@ inline void apply_send_option(bt_list& parts, bt_dict&, string_view arg) {
 template <typename InputIt>
 void apply_send_option(bt_list& parts, bt_dict&, const send_option::data_parts_impl<InputIt> data) {
     for (auto it = data.begin; it != data.end; ++it)
-        parts.push_back(lokimq::bt_deserialize(*it));
+        parts.push_back(queneromq::bt_deserialize(*it));
 }
 
 /// `hint` specialization: sets the hint in the control data
@@ -1332,7 +1332,7 @@ bt_dict build_send(ConnectionID to, string_view cmd, T&&... opts) {
 
 
 template <typename... T>
-void LokiMQ::send(ConnectionID to, string_view cmd, const T&... opts) {
+void QueneroMQ::send(ConnectionID to, string_view cmd, const T&... opts) {
     detail::send_control(get_control_socket(), "SEND",
             bt_serialize(detail::build_send(std::move(to), cmd, opts...)));
 }
@@ -1340,7 +1340,7 @@ void LokiMQ::send(ConnectionID to, string_view cmd, const T&... opts) {
 std::string make_random_string(size_t size);
 
 template <typename... T>
-void LokiMQ::request(ConnectionID to, string_view cmd, ReplyCallback callback, const T &...opts) {
+void QueneroMQ::request(ConnectionID to, string_view cmd, ReplyCallback callback, const T &...opts) {
     const auto reply_tag = make_random_string(15); // 15 random bytes is lots and should keep us in most stl implementations' small string optimization
     bt_dict control_data = detail::build_send(std::move(to), cmd, reply_tag, opts...);
     control_data["request"] = true;
@@ -1351,23 +1351,23 @@ void LokiMQ::request(ConnectionID to, string_view cmd, ReplyCallback callback, c
 
 template <typename... Args>
 void Message::send_back(string_view command, Args&&... args) {
-    lokimq.send(conn, command, send_option::optional{!conn.sn()}, std::forward<Args>(args)...);
+    queneromq.send(conn, command, send_option::optional{!conn.sn()}, std::forward<Args>(args)...);
 }
 
 template <typename... Args>
 void Message::send_reply(Args&&... args) {
     assert(!reply_tag.empty());
-    lokimq.send(conn, "REPLY", reply_tag, send_option::optional{!conn.sn()}, std::forward<Args>(args)...);
+    queneromq.send(conn, "REPLY", reply_tag, send_option::optional{!conn.sn()}, std::forward<Args>(args)...);
 }
 
 template <typename Callback, typename... Args>
 void Message::send_request(string_view cmd, Callback&& callback, Args&&... args) {
-    lokimq.request(conn, cmd, std::forward<Callback>(callback),
+    queneromq.request(conn, cmd, std::forward<Callback>(callback),
             send_option::optional{!conn.sn()}, std::forward<Args>(args)...);
 }
 
 // When log messages are invoked we strip out anything before this in the filename:
-constexpr string_view LOG_PREFIX{"lokimq/", 7};
+constexpr string_view LOG_PREFIX{"queneromq/", 7};
 inline string_view trim_log_filename(string_view local_file) {
     auto chop = local_file.rfind(LOG_PREFIX);
     if (chop != local_file.npos)
@@ -1376,7 +1376,7 @@ inline string_view trim_log_filename(string_view local_file) {
 }
 
 template <typename... T>
-void LokiMQ::log_(LogLevel lvl, const char* file, int line, const T&... stuff) {
+void QueneroMQ::log_(LogLevel lvl, const char* file, int line, const T&... stuff) {
     if (log_level() < lvl)
         return;
 
@@ -1391,6 +1391,6 @@ void LokiMQ::log_(LogLevel lvl, const char* file, int line, const T&... stuff) {
 
 std::ostream &operator<<(std::ostream &os, LogLevel lvl);
 
-} // namespace lokimq
+} // namespace queneromq
 
 // vim:sw=4:et

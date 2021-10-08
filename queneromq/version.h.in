@@ -1,4 +1,4 @@
-namespace lokimq {
+namespace queneromq {
 constexpr int VERSION_MAJOR = @LOKIMQ_VERSION_MAJOR@;
 constexpr int VERSION_MINOR = @LOKIMQ_VERSION_MINOR@;
 constexpr int VERSION_PATCH = @LOKIMQ_VERSION_PATCH@;

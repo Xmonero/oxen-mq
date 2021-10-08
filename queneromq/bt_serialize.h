@@ -42,12 +42,12 @@
 #include "mapbox/variant.hpp"
 
 
-namespace lokimq {
+namespace queneromq {
 
 using namespace std::literals;
 
 /** \file
- * LokiMQ serialization for internal commands is very simple: we support two primitive types,
+ * QueneroMQ serialization for internal commands is very simple: we support two primitive types,
  * strings and integers, and two container types, lists and dicts with string keys.  On the wire
  * these go in BitTorrent byte encoding as described in BEP-0003
  * (https://www.bittorrent.org/beps/bep_0003.html#bencoding).
@@ -826,4 +826,4 @@ public:
 };
 
 
-} // namespace lokimq
+} // namespace queneromq

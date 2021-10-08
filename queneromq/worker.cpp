@@ -1,11 +1,11 @@
-#include "lokimq.h"
+#include "queneromq.h"
 #include "batch.h"
 #include "hex.h"
-#include "lokimq-internal.h"
+#include "queneromq-internal.h"
 
-namespace lokimq {
+namespace queneromq {
 
-void LokiMQ::worker_thread(unsigned int index) {
+void QueneroMQ::worker_thread(unsigned int index) {
     std::string worker_id = "w" + std::to_string(index);
 
 #if defined(__linux__) || defined(__sun) || defined(__MINGW32__)
@@ -102,7 +102,7 @@ void LokiMQ::worker_thread(unsigned int index) {
 }
 
 
-LokiMQ::run_info& LokiMQ::get_idle_worker() {
+QueneroMQ::run_info& QueneroMQ::get_idle_worker() {
     if (idle_workers.empty()) {
         size_t id = workers.size();
         assert(workers.capacity() > id);
@@ -117,7 +117,7 @@ LokiMQ::run_info& LokiMQ::get_idle_worker() {
     return workers[id];
 }
 
-void LokiMQ::proxy_worker_message(std::vector<zmq::message_t>& parts) {
+void QueneroMQ::proxy_worker_message(std::vector<zmq::message_t>& parts) {
     // Process messages sent by workers
     if (parts.size() != 2) {
         LMQ_LOG(error, "Received send invalid ", parts.size(), "-part message");
@@ -190,14 +190,14 @@ void LokiMQ::proxy_worker_message(std::vector<zmq::message_t>& parts) {
     }
 }
 
-void LokiMQ::proxy_run_worker(run_info& run) {
+void QueneroMQ::proxy_run_worker(run_info& run) {
     if (!run.worker_thread.joinable())
-        run.worker_thread = std::thread{&LokiMQ::worker_thread, this, run.worker_id};
+        run.worker_thread = std::thread{&QueneroMQ::worker_thread, this, run.worker_id};
     else
         send_routed_message(workers_socket, run.worker_routing_id, "RUN");
 }
 
-void LokiMQ::proxy_to_worker(size_t conn_index, std::vector<zmq::message_t>& parts) {
+void QueneroMQ::proxy_to_worker(size_t conn_index, std::vector<zmq::message_t>& parts) {
     bool outgoing = connections[conn_index].getsockopt<int>(ZMQ_TYPE) == ZMQ_DEALER;
 
     peer_info tmp_peer;
@@ -213,10 +213,10 @@ void LokiMQ::proxy_to_worker(size_t conn_index, std::vector<zmq::message_t>& par
         peer = &it->second;
     } else {
         std::tie(tmp_peer.pubkey, tmp_peer.auth_level) = detail::extract_metadata(parts.back());
-        tmp_peer.service_node = tmp_peer.pubkey.size() == 32 && active_service_nodes.count(tmp_peer.pubkey);
+        tmp_peer.masternode = tmp_peer.pubkey.size() == 32 && active_masternodes.count(tmp_peer.pubkey);
 
-        if (tmp_peer.service_node) {
-            // It's a service node so we should have a peer_info entry; see if we can find one with
+        if (tmp_peer.masternode) {
+            // It's a masternode so we should have a peer_info entry; see if we can find one with
             // the same route, and if not, add one.
             auto pr = peers.equal_range(tmp_peer.pubkey);
             for (auto it = pr.first; it != pr.second; ++it) {
@@ -256,7 +256,7 @@ void LokiMQ::proxy_to_worker(size_t conn_index, std::vector<zmq::message_t>& par
         return;
 
     auto& category = *cat_call.first;
-    Access access{peer->auth_level, peer->service_node, local_service_node};
+    Access access{peer->auth_level, peer->masternode, local_masternode};
 
     if (category.active_threads >= category.reserved_threads && active_workers() >= general_workers) {
         // No free reserved or general spots, try to queue it for later
@@ -267,7 +267,7 @@ void LokiMQ::proxy_to_worker(size_t conn_index, std::vector<zmq::message_t>& par
         }
 
         LMQ_LOG(debug, "No available free workers, queuing ", command, " for later");
-        ConnectionID conn{peer->service_node ? ConnectionID::SN_ID : conn_index_to_id[conn_index].id, peer->pubkey, std::move(tmp_peer.route)};
+        ConnectionID conn{peer->masternode ? ConnectionID::SN_ID : conn_index_to_id[conn_index].id, peer->pubkey, std::move(tmp_peer.route)};
         pending_commands.emplace_back(category, std::move(command), std::move(data_parts), cat_call.second,
                 std::move(conn), std::move(access), peer_address(parts[command_part_index]));
         category.queued++;
@@ -281,9 +281,9 @@ void LokiMQ::proxy_to_worker(size_t conn_index, std::vector<zmq::message_t>& par
 
     auto& run = get_idle_worker();
     {
-        ConnectionID c{peer->service_node ? ConnectionID::SN_ID : conn_index_to_id[conn_index].id, peer->pubkey};
+        ConnectionID c{peer->masternode ? ConnectionID::SN_ID : conn_index_to_id[conn_index].id, peer->pubkey};
         c.route = std::move(tmp_peer.route);
-        if (outgoing || peer->service_node)
+        if (outgoing || peer->masternode)
             tmp_peer.route.clear();
         run.load(&category, std::move(command), std::move(c), std::move(access), peer_address(parts[command_part_index]),
                 std::move(data_parts), cat_call.second);

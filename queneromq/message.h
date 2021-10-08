@@ -2,16 +2,16 @@
 #include <vector>
 #include "connections.h"
 
-namespace lokimq {
+namespace queneromq {
 
-class LokiMQ;
+class QueneroMQ;
 
 /// Encapsulates an incoming message from a remote connection with message details plus extra
 /// info need to send a reply back through the proxy thread via the `reply()` method.  Note that
 /// this object gets reused: callbacks should use but not store any reference beyond the callback.
 class Message {
 public:
-    LokiMQ& lokimq; ///< The owning LokiMQ object
+    QueneroMQ& queneromq; ///< The owning QueneroMQ object
     std::vector<string_view> data; ///< The provided command data parts, if any.
     ConnectionID conn; ///< The connection info for routing a reply; also contains the pubkey/sn status.
     std::string reply_tag; ///< If the invoked command is a request command this is the required reply tag that will be prepended by `send_reply()`.
@@ -19,8 +19,8 @@ public:
     std::string remote; ///< Some sort of remote address from which the request came.  Often "IP" for TCP connections and "localhost:UID:GID:PID" for UDP connections.
 
     /// Constructor
-    Message(LokiMQ& lmq, ConnectionID cid, Access access, std::string remote)
-        : lokimq{lmq}, conn{std::move(cid)}, access{std::move(access)}, remote{std::move(remote)} {}
+    Message(QueneroMQ& lmq, ConnectionID cid, Access access, std::string remote)
+        : queneromq{lmq}, conn{std::move(cid)}, access{std::move(access)}, remote{std::move(remote)} {}
 
     // Non-copyable
     Message(const Message&) = delete;
@@ -33,7 +33,7 @@ public:
     /// will be attempted using the available routing information, but if the connection has already
     /// been closed the reply will be dropped.
     ///
-    /// If you want to send a non-strong reply even when the remote is a service node then add
+    /// If you want to send a non-strong reply even when the remote is a masternode then add
     /// an explicit `send_option::optional()` argument.
     template <typename... Args>
     void send_back(string_view, Args&&... args);

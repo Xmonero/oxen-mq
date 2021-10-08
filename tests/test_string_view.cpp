@@ -1,8 +1,8 @@
 #include <catch2/catch.hpp>
-#include "lokimq/string_view.h"
+#include "queneromq/string_view.h"
 #include <future>
 
-using namespace lokimq;
+using namespace queneromq;
 
 using namespace std::literals;
 

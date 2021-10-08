@@ -1,8 +1,8 @@
-#include "lokimq.h"
+#include "queneromq.h"
 #include "hex.h"
-#include "lokimq-internal.h"
+#include "queneromq-internal.h"
 
-namespace lokimq {
+namespace queneromq {
 
 std::ostream& operator<<(std::ostream& o, AuthLevel a) {
     return o << to_string(a);
@@ -29,7 +29,7 @@ std::string zmtp_metadata(string_view key, string_view value) {
 }
 
 
-bool LokiMQ::proxy_check_auth(size_t conn_index, bool outgoing, const peer_info& peer,
+bool QueneroMQ::proxy_check_auth(size_t conn_index, bool outgoing, const peer_info& peer,
         zmq::message_t& cmd, const cat_call_t& cat_call, std::vector<zmq::message_t>& data) {
     auto command = view(cmd);
     std::string reply;
@@ -41,13 +41,13 @@ bool LokiMQ::proxy_check_auth(size_t conn_index, bool outgoing, const peer_info&
         LMQ_LOG(warn, "Access denied to ", command, " for peer [", to_hex(peer.pubkey), "]/", peer_address(cmd),
                 ": peer auth level ", peer.auth_level, " < ", cat_call.first->access.auth);
         reply = "FORBIDDEN";
-    } else if (cat_call.first->access.local_sn && !local_service_node) {
+    } else if (cat_call.first->access.local_sn && !local_masternode) {
         LMQ_LOG(warn, "Access denied to ", command, " for peer [", to_hex(peer.pubkey), "]/", peer_address(cmd),
-                ": that command is only available when this LokiMQ is running in service node mode");
-        reply = "NOT_A_SERVICE_NODE";
-    } else if (cat_call.first->access.remote_sn && !peer.service_node) {
+                ": that command is only available when this QueneroMQ is running in masternode mode");
+        reply = "NOT_A_MASTERNODE";
+    } else if (cat_call.first->access.remote_sn && !peer.masternode) {
         LMQ_LOG(warn, "Access denied to ", command, " for peer [", to_hex(peer.pubkey), "]/", peer_address(cmd),
-                ": remote is not recognized as a service node");
+                ": remote is not recognized as a masternode");
         reply = "FORBIDDEN_SN";
     } else if (cat_call.second->second /*is_request*/ && data.empty()) {
         LMQ_LOG(warn, "Received an invalid request for '", command, "' with no reply tag from remote [",
@@ -79,7 +79,7 @@ bool LokiMQ::proxy_check_auth(size_t conn_index, bool outgoing, const peer_info&
     return false;
 }
 
-void LokiMQ::set_active_sns(pubkey_set pubkeys) {
+void QueneroMQ::set_active_sns(pubkey_set pubkeys) {
     if (proxy_thread.joinable()) {
         auto data = bt_serialize(detail::serialize_object(std::move(pubkeys)));
         detail::send_control(get_control_socket(), "SET_SNS", data);
@@ -87,10 +87,10 @@ void LokiMQ::set_active_sns(pubkey_set pubkeys) {
         proxy_set_active_sns(std::move(pubkeys));
     }
 }
-void LokiMQ::proxy_set_active_sns(string_view data) {
+void QueneroMQ::proxy_set_active_sns(string_view data) {
     proxy_set_active_sns(detail::deserialize_object<pubkey_set>(bt_deserialize<uintptr_t>(data)));
 }
-void LokiMQ::proxy_set_active_sns(pubkey_set pubkeys) {
+void QueneroMQ::proxy_set_active_sns(pubkey_set pubkeys) {
     pubkey_set added, removed;
     for (auto it = pubkeys.begin(); it != pubkeys.end(); ) {
         auto& pk = *it;
@@ -99,24 +99,24 @@ void LokiMQ::proxy_set_active_sns(pubkey_set pubkeys) {
             it = pubkeys.erase(it);
             continue;
         }
-        if (!active_service_nodes.count(pk))
+        if (!active_masternodes.count(pk))
             added.insert(std::move(pk));
         ++it;
     }
-    if (added.empty() && active_service_nodes.size() == pubkeys.size()) {
+    if (added.empty() && active_masternodes.size() == pubkeys.size()) {
         LMQ_LOG(debug, "set_active_sns(): new set of SNs is unchanged, skipping update");
         return;
     }
-    for (const auto& pk : active_service_nodes) {
+    for (const auto& pk : active_masternodes) {
         if (!pubkeys.count(pk))
             removed.insert(pk);
-        if (active_service_nodes.size() + added.size() - removed.size() == pubkeys.size())
+        if (active_masternodes.size() + added.size() - removed.size() == pubkeys.size())
             break;
     }
     proxy_update_active_sns_clean(std::move(added), std::move(removed));
 }
 
-void LokiMQ::update_active_sns(pubkey_set added, pubkey_set removed) {
+void QueneroMQ::update_active_sns(pubkey_set added, pubkey_set removed) {
     LMQ_LOG(info, "uh, ", added.size());
     if (proxy_thread.joinable()) {
         std::array<uintptr_t, 2> data;
@@ -127,12 +127,12 @@ void LokiMQ::update_active_sns(pubkey_set added, pubkey_set removed) {
         proxy_update_active_sns(std::move(added), std::move(removed));
     }
 }
-void LokiMQ::proxy_update_active_sns(bt_list_consumer data) {
+void QueneroMQ::proxy_update_active_sns(bt_list_consumer data) {
     auto added = detail::deserialize_object<pubkey_set>(data.consume_integer<uintptr_t>());
     auto remed = detail::deserialize_object<pubkey_set>(data.consume_integer<uintptr_t>());
     proxy_update_active_sns(std::move(added), std::move(remed));
 }
-void LokiMQ::proxy_update_active_sns(pubkey_set added, pubkey_set removed) {
+void QueneroMQ::proxy_update_active_sns(pubkey_set added, pubkey_set removed) {
     // We take a caller-provided set of added/removed then filter out any junk (bad pks, conflicting
     // values, pubkeys that already(added) or do not(removed) exist), then pass the purified lists
     // to the _clean version.
@@ -143,7 +143,7 @@ void LokiMQ::proxy_update_active_sns(pubkey_set added, pubkey_set removed) {
         if (pk.size() != 32) {
             LMQ_LOG(warn, "Invalid private key of length ", pk.size(), " (", to_hex(pk), ") passed to update_active_sns (removed)");
             it = removed.erase(it);
-        } else if (!active_service_nodes.count(pk) || added.count(pk) /* added wins if in both */) {
+        } else if (!active_masternodes.count(pk) || added.count(pk) /* added wins if in both */) {
             it = removed.erase(it);
         } else {
             ++it;
@@ -155,7 +155,7 @@ void LokiMQ::proxy_update_active_sns(pubkey_set added, pubkey_set removed) {
         if (pk.size() != 32) {
             LMQ_LOG(warn, "Invalid private key of length ", pk.size(), " (", to_hex(pk), ") passed to update_active_sns (added)");
             it = added.erase(it);
-        } else if (active_service_nodes.count(pk)) {
+        } else if (active_masternodes.count(pk)) {
             it = added.erase(it);
         } else {
             ++it;
@@ -165,14 +165,14 @@ void LokiMQ::proxy_update_active_sns(pubkey_set added, pubkey_set removed) {
     proxy_update_active_sns_clean(std::move(added), std::move(removed));
 }
 
-void LokiMQ::proxy_update_active_sns_clean(pubkey_set added, pubkey_set removed) {
+void QueneroMQ::proxy_update_active_sns_clean(pubkey_set added, pubkey_set removed) {
     LMQ_LOG(debug, "Updating SN auth status with +", added.size(), "/-", removed.size(), " pubkeys");
 
     // For anything we remove we want close the connection to the SN (if outgoing), and remove the
     // stored peer_info (incoming or outgoing).
     for (const auto& pk : removed) {
         ConnectionID c{pk};
-        active_service_nodes.erase(pk);
+        active_masternodes.erase(pk);
         auto range = peers.equal_range(c);
         for (auto it = range.first; it != range.second; ) {
             bool outgoing = it->second.outgoing();
@@ -187,10 +187,10 @@ void LokiMQ::proxy_update_active_sns_clean(pubkey_set added, pubkey_set removed)
 
     // For pubkeys we add there's nothing special to be done beyond adding them to the pubkey set
     for (auto& pk : added)
-        active_service_nodes.insert(std::move(pk));
+        active_masternodes.insert(std::move(pk));
 }
 
-void LokiMQ::process_zap_requests() {
+void QueneroMQ::process_zap_requests() {
     for (std::vector<zmq::message_t> frames; recv_message_parts(zap_auth, frames, zmq::recv_flags::dontwait); frames.clear()) {
 #ifndef NDEBUG
         if (log_level() >= LogLevel::trace) {
@@ -271,7 +271,7 @@ void LokiMQ::process_zap_requests() {
                 bool sn = false;
                 if (bind[bind_id].second.curve) {
                     pubkey = view(frames[6]);
-                    sn = active_service_nodes.count(std::string{pubkey});
+                    sn = active_masternodes.count(std::string{pubkey});
                 }
                 auto auth = bind[bind_id].second.allow(ip, pubkey, sn);
                 auto& user_id = response_vals[4];
@@ -281,14 +281,14 @@ void LokiMQ::process_zap_requests() {
                 }
 
                 if (auth <= AuthLevel::denied || auth > AuthLevel::admin) {
-                    LMQ_LOG(info, "Access denied for incoming ", view(frames[5]), (sn ? " service node" : " client"),
+                    LMQ_LOG(info, "Access denied for incoming ", view(frames[5]), (sn ? " masternode" : " client"),
                             " connection from ", !user_id.empty() ? user_id + " at " : ""s, ip,
                             " with initial auth level ", auth);
                     status_code = "400";
                     status_text = "Access denied";
                     user_id.clear();
                 } else {
-                    LMQ_LOG(debug, "Accepted incoming ", view(frames[5]), (sn ? " service node" : " client"),
+                    LMQ_LOG(debug, "Accepted incoming ", view(frames[5]), (sn ? " masternode" : " client"),
                             " connection with authentication level ", auth,
                             " from ", !user_id.empty() ? user_id + " at " : ""s, ip);
 

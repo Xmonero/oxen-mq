@@ -1,15 +1,15 @@
 #include "common.h"
-#include <lokimq/hex.h>
+#include <queneromq/hex.h>
 #include <map>
 #include <set>
 
-using namespace lokimq;
+using namespace queneromq;
 
 TEST_CASE("basic commands", "[commands]") {
     std::string listen = "tcp://127.0.0.1:4567";
-    LokiMQ server{
+    QueneroMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace
@@ -31,7 +31,7 @@ TEST_CASE("basic commands", "[commands]") {
 
     server.start();
 
-    LokiMQ client{get_logger("C» "), LogLevel::trace};
+    QueneroMQ client{get_logger("C» "), LogLevel::trace};
 
     client.add_category("public", Access{AuthLevel::none});
     client.add_command("public", "hi", [&](auto&) { his++; });
@@ -78,9 +78,9 @@ TEST_CASE("basic commands", "[commands]") {
 
 TEST_CASE("outgoing auth level", "[commands][auth]") {
     std::string listen = "tcp://127.0.0.1:4567";
-    LokiMQ server{
+    QueneroMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace
@@ -94,7 +94,7 @@ TEST_CASE("outgoing auth level", "[commands][auth]") {
 
     server.start();
 
-    LokiMQ client{get_logger("C» "), LogLevel::trace};
+    QueneroMQ client{get_logger("C» "), LogLevel::trace};
 
     std::atomic<int> public_hi{0}, basic_hi{0}, admin_hi{0};
     client.add_category("public", Access{AuthLevel::none});
@@ -159,9 +159,9 @@ TEST_CASE("deferred replies on incoming connections", "[commands][hey google]") 
     // original node.
 
     std::string listen = "tcp://127.0.0.1:4567";
-    LokiMQ server{
+    QueneroMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::trace
@@ -178,7 +178,7 @@ TEST_CASE("deferred replies on incoming connections", "[commands][hey google]") 
             m.send_reply("Okay, I'll remember that.");
 
             if (backdoor)
-                m.lokimq.send(backdoor, "backdoor.data", m.data[0]);
+                m.queneromq.send(backdoor, "backdoor.data", m.data[0]);
     });
     server.add_command("hey google", "recall", [&](Message& m) {
             auto l = catch_lock();
@@ -199,7 +199,7 @@ TEST_CASE("deferred replies on incoming connections", "[commands][hey google]") 
 
     std::set<std::string> backdoor_details;
 
-    LokiMQ nsa{get_logger("NSA» ")};
+    QueneroMQ nsa{get_logger("NSA» ")};
     nsa.add_category("backdoor", Access{AuthLevel::admin});
     nsa.add_command("backdoor", "data", [&](Message& m) {
             backdoor_details.emplace(m.data[0]);
@@ -214,7 +214,7 @@ TEST_CASE("deferred replies on incoming connections", "[commands][hey google]") 
         REQUIRE( backdoor );
     }
 
-    std::vector<std::unique_ptr<LokiMQ>> clients;
+    std::vector<std::unique_ptr<QueneroMQ>> clients;
     std::vector<ConnectionID> conns;
     std::map<int, std::set<std::string>> personal_details{
         {0, {"Loretta"s, "photos"s}},
@@ -229,7 +229,7 @@ TEST_CASE("deferred replies on incoming connections", "[commands][hey google]") 
     std::map<int, std::set<std::string>> google_knows;
     int things_remembered{0};
     for (int i = 0; i < 5; i++) {
-        clients.push_back(std::make_unique<LokiMQ>(
+        clients.push_back(std::make_unique<QueneroMQ>(
             get_logger("C" + std::to_string(i) + "» "), LogLevel::trace
         ));
         auto& c = clients.back();
@@ -269,9 +269,9 @@ TEST_CASE("deferred replies on incoming connections", "[commands][hey google]") 
 
 TEST_CASE("send failure callbacks", "[commands][queue_full]") {
     std::string listen = "tcp://127.0.0.1:4567";
-    LokiMQ server{
+    QueneroMQ server{
         "", "", // generate ephemeral keys
-        false, // not a service node
+        false, // not a masternode
         [](auto) { return ""; },
         get_logger("S» "),
         LogLevel::debug // This test traces so much that it takes 2.5-3s of CPU time at trace level, so don't do that.
@@ -296,7 +296,7 @@ TEST_CASE("send failure callbacks", "[commands][queue_full]") {
     server.start();
 
     // Use a raw socket here because I want to stall it by not reading from it at all, and that is
-    // hard with LokiMQ.
+    // hard with QueneroMQ.
     zmq::context_t client_ctx;
     zmq::socket_t client{client_ctx, zmq::socket_type::dealer};
     client.connect(listen);
