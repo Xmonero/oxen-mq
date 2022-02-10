@@ -25,8 +25,8 @@ local deb_pipeline(image, buildarch='amd64', debarch='amd64', jobs=6) = {
             environment: { SSH_KEY: { from_secret: "SSH_KEY" } },
             commands: [
                 'echo "man-db man-db/auto-update boolean false" | debconf-set-selections',
-                'cp debian/deb.loki.network.gpg /etc/apt/trusted.gpg.d/deb.loki.network.gpg',
-                'echo deb http://deb.loki.network' + repo_suffix + ' ' + distro + ' main >/etc/apt/sources.list.d/loki.list',
+                'cp debian/deb.quenero.tech.gpg /etc/apt/trusted.gpg.d/deb.quenero.tech.gpg',
+                'echo deb http://deb.quenero.tech' + repo_suffix + ' ' + distro + ' main >/etc/apt/sources.list.d/quenero.list',
                 apt_get_quiet + ' update',
                 apt_get_quiet + ' install -y eatmydata',
                 'eatmydata ' + apt_get_quiet + ' dist-upgrade -y',
